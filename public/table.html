@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>The Engineer's Lab</title>
+  <meta name="author" content="Bereket Abraham">
+  <meta name="keywords" content="JavaScript, SocketIO" />
+  <meta name="description" content="SocketIO codelab" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+  <link rel="icon" href="static/favicon.ico" type="image/x-icon" >
+  <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon" >
+
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="static/custom.css">
+
+  <style type="text/css">
+      canvas { border: 1px solid black; }
+  </style>
+</head>
+<body>
+
+  <br />
+  <h1>A visual method of controlling the Light Table</h1>
+  <br />
+  <br />
+
+  <canvas id="table1" width="750" height="500">
+    This browser does not support canvas elements.
+  </canvas>
+  <br />
+
+  <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <!-- <script src="//cdn.socket.io/socket.io-1.0.6.js"></script> -->
+  <script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fabric.js/1.4.0/fabric.min.js"></script>
+  <script src="table_client.js"></script>
+
+</body>

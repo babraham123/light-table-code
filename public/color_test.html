@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>The Engineer's Lab</title>
+  <meta name="author" content="Bereket Abraham">
+  <meta name="keywords" content="JavaScript, SocketIO" />
+  <meta name="description" content="SocketIO codelab" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+  <link rel="icon" href="static/favicon.ico" type="image/x-icon" >
+  <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon" >
+
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="static/custom.css">
+
+  <style type="text/css">
+      canvas { border: 1px solid black; }
+  </style>
+</head>
+<body>
+
+  <br />
+  <h1>A visual method of controlling the Light Table</h1>
+  <br />
+  <br />
+
+  <canvas id="table1" width="750" height="500">
+    This browser does not support canvas elements.
+  </canvas>
+  <br />
+
+  <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <!-- <script src="//cdn.socket.io/socket.io-1.0.6.js"></script> -->
+  <script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fabric.js/1.4.0/fabric.min.js"></script>
+  <script>
+
+(function(){
+
+    var _self = this;
+    var table1 = null;
+    var rect = null;
+    var rect2 = null;
+
+    if (!Date.now) {
+        Date.now = function() { return new Date().getTime(); };
+    }
+
+    // set the canvas
+    table1 = new fabric.Canvas('table1', {
+        selection: false,
+        backgroundColor : '#222222'
+    });
+
+    fabric.Object.prototype.selectedStart = -1;
+
+    rect = new fabric.Rect({
+        left: 40,
+        top: 40,
+        fill: '#CCCCCC',
+        width: 200,
+        height: 200,
+        hasControls: false,
+        hasBorders: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        //selectable: false,
+        perPixelTargetFind: true,
+        targetFindTolerance: offset
+    });
+    table1.add(rect);
+
+    rect2 = new fabric.Rect({
+        left: 240,
+        top: 40,
+        fill: '#CCCCCC',
+        width: 200,
+        height: 200,
+        hasControls: false,
+        hasBorders: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        //selectable: false,
+        perPixelTargetFind: true,
+        targetFindTolerance: offset
+    });
+    table1.add(rect2);
+    
+    table1.on({
+        'object:selected': function(e) {     // 'mouse:down'
+            if (e.target) {
+                e.target.opacity = 0.5;
+                e.target.selectedStart = Date.now();
+
+                console.log('mouse down: ');
+                //table1.renderAll();
+            }
+        }
+    });
+
+
+    // emit the state of the table based on local changes
+    table1.on('mouse:up', function(e) {
+        if (e.target) {
+            var activeObj = e.target;
+
+            var selectedTime = Date.now() - activeObj.selectedStart;
+            // use time to determine the color of the rect
+            console.log('mouse up: ' + JSON.stringify( selectedTime ));
+            activeObj.set('selectedStart', -1);
+
+            activeObj.set('fill', '#FFAA33');
+            activeObj.opacity = 1;
+            table1.renderAll();
+
+        }
+    });
+
+    var colorStepper = setInterval(function(){
+      var color = rect2.get('fill');
+      // convert hex string to num values
+      rect2.set('fill','#11AAFF');
+    }, 1000);
+
+})();
+
+
+  </script>
+
+</body>
