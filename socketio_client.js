@@ -19,8 +19,7 @@ for (var y = 0; y < lenr; y++) {
 }
 
 // locate the arduino serial port
-var port = '';
-var serialPort = require("serialport");
+var port = '/dev/ttyACM0';
 serialPort.list(function (err, ports) {
     ports.forEach(function(p) {
         if (p.pnpId.indexOf('arduino') > -1) {
