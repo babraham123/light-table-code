@@ -14,6 +14,39 @@ CRGB leds[NUM_LEDS];
 int index1, index2, red, green, blue;
 #define DEBUG false
 
+
+void setColor(unsigned int index, unsigned long hexcolor) {
+    // Accepts the LED index (int) and the 3 byte color # (unsigned long)
+
+    //leds[index] = CRGB::White;
+    leds[index] = hexcolor;
+    FastLED.show();
+
+    if(DEBUG) {
+        Serial.print("Color " + String(index) + " : ");
+        Serial.println(hexcolor, HEX);
+    }
+}
+
+void blackout() {
+    for(int i = 0; i < NUM_LEDS; i++)
+    { leds[i] = CRGB::Black; }
+
+    FastLED.show();
+    delay(2000);
+}
+void loop_lights() {
+  // Move a single white led
+    for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed++) {
+        leds[whiteLed] = CRGB::White;
+        // Show the leds (only one of which is set to white, from above)
+        FastLED.show();
+
+        delay(200);
+        leds[whiteLed] = CRGB::Black;
+    }
+}
+
 void setup() {
     Serial.begin(9600);
     index1 = 0;
@@ -54,34 +87,3 @@ void loop() {
 }
 
 
-void setColor(unsigned int index, unsigned long hexcolor) {
-    // Accepts the LED index (int) and the 3 byte color # (unsigned long)
-    
-    //leds[index] = CRGB::White;
-    leds[index] = hexcolor;
-    FastLED.show();
-
-    if(DEBUG) { 
-        Serial.print("Color " + String(index) + " : ");
-        Serial.println(hexcolor, HEX); 
-    }
-}
-
-void blackout() {
-    for(int i = 0; i < NUM_LEDS; i++) 
-    { leds[i] = CRGB::Black; }
-
-    FastLED.show();
-    delay(2000);
-}
-void loop_lights() {
-  // Move a single white led 
-    for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed++) {
-        leds[whiteLed] = CRGB::White;
-        // Show the leds (only one of which is set to white, from above)
-        FastLED.show();
-
-        delay(200);
-        leds[whiteLed] = CRGB::Black;
-    }
-}
