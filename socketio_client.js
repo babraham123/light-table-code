@@ -80,8 +80,8 @@ var sendColor = function( colormsg ) {
 
 }
 
-
-var socket = io.connect('http://192.168.1.6:8080');
+// Use with Express 3/4 or standalone server. use io() for http server
+var socket = io.connect('http://bereketabraham.com/socket.io');
 
 // comm API
     // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'

@@ -2,24 +2,11 @@
 //
 // Bereket Abraham
 
-var mongojs = require('mongojs'),
-    express = require('express'),
-    app     = express(),
-    server  = require('http').Server(app),
-    io      = require('socket.io')(server);
+var port = parseInt( process.argv[2] );
 
-// Standalone socketio server
-//var io = require('socket.io'),
-//io = io.listen(8080);
+//var mongojs = require('mongojs');
+var io      = require('socket.io').listen(port);
 
-app.use(express.static(__dirname + '/public'));
-
-app.get('/', function (req, res) {
-    res.send('Hello World');
-    //res.sendfile('public/table.html');
-});
-
-server.listen(8080);
 // connect to mongo db server
 //var db = mongojs('mydb', ['lightTables']);
 //var db = mongojs('username:password@localhost/mydb', ['lightTables']);
@@ -35,7 +22,6 @@ for (var y = 0; y < lenr; y++) {
         colorArr[index] = '#22CCCC';
     }
 }
-
 
 // create zero padding function
 function pad(a,b){return(1e15+a+"").slice(-b)}
@@ -78,11 +64,6 @@ io.on('connection', function(socket) {
         socket.broadcast.emit('remote_update', colormsg);
     });
 
-    socket.on('initial_state_single', function(data) {
-        //
-        console.log('received initial message from arduino');
-    });
-
 
     socket.on('disconnect', function(data) {
         console.log("disconnected: " + JSON.stringify(data));
@@ -93,8 +74,6 @@ io.on('connection', function(socket) {
     });
 
 });
-
-
 
 
 
