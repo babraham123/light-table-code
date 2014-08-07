@@ -1,0 +1,24 @@
+description "node server for socket.io connections - mysocketio"
+start on runlevel [2345]
+stop on runlevel [06]
+
+expect fork
+respawn
+respawn limit 10 5
+console output
+
+script
+        NAME=mysocketio
+        PORT=8002
+        USER=babraham
+        GROUP=wheel
+        MAINFILE=socketio_server.js
+        LOGFILE=/var/log/forever/$NAME.log
+        OUTFILE=/var/log/forever/$NAME_stdout.log
+        ERRFILE=/var/log/forever/$NAME_stderr.log
+        LOGDIR=$(dirname $LOGFILE)
+        test -d $LOGDIR || mkdir -p $LOGDIR
+        cd /home/$USER/$NAME
+
+        exec forever start -a -l $LOGFILE -o $OUTFILE -e $ERRFILE $MAINFILE $PORT
+end script

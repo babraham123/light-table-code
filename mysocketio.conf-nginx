@@ -1,0 +1,39 @@
+server {
+    listen       80;
+    server_name  bereketabraham.com;
+
+    access_log  /var/log/nginx/mysite.log;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://127.0.0.1:8001;
+    }
+
+    location /media/ {
+        root /home/babraham/mysite/media;
+    }
+
+    location /static/ {
+        root /home/babraham/mysite/static;
+    }
+
+    location /admin/media/ {
+        # this changes depending on your python version
+        root /usr/lib/python2.6/site-packages/django/contrib;
+    }
+
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:8002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location /socket.io/static/ {
+        root /home/babraham/mysocketio/public;
+    }
+
+    error_page   500 502 503 504  /home/babraham/mysite/static/50x.html;
+}
