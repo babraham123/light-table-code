@@ -6,14 +6,28 @@
 
 \f0\fs24 \cf0 (setting up the centos server to run a socket.io server in parallel with django)\
 \
+sudo yum install npm\
+	(install node, npm)\
+\
 \pard\pardeftab720\sl340
 \cf0 sudo npm install forever -g\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 \cf0  	(install Forever, to manage node)\
 \
-mv light-table-code/ mysocketio/\
-	(change project folder name)\
+mkdir mysocketio/\
+cd mysocketio/\
+	(create project folder and populate with node files)\
 \
+npm install\
+	(locally install project packages)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 sudo chmod 755 /home/username/mysocketio -R\
+\pard\pardeftab720\sl340
+\cf0 	(0755 = User:rwx Group:r-x World:r-x)\
+	(0644 = User:rwx Group:r World:r)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 \cf0 vi /etc/nginx/conf.d/mysite.conf\
 	(add this to your nginx config for port 80)\
@@ -32,6 +46,11 @@ mv light-table-code/ mysocketio/\
 \'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 \cf0 \
+sudo rpm -Uvh http://mirror.webtatic.com/yum/el6/latest.rpm\
+sudo yum install nginx16\
+	(upgrade to nginx 1.6, at least)\
+	{\field{\*\fldinst{HYPERLINK "https://webtatic.com/packages/nginx14/"}}{\fldrslt https://webtatic.com/packages/nginx14/}}\
+\
 sudo nginx -s reload\
 sudo service nginx restart\
 	(start up nginx)\
@@ -65,6 +84,11 @@ script\
 \
         exec forever start -a -l $LOGFILE -o $OUTFILE -e $ERRFILE $MAINFILE $PORT\
 end script\
+\
+post-start script\
+   echo "mysocketio started through forever + upstart\'94\
+end script\
+\
 \'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 \cf0 \
@@ -85,5 +109,5 @@ sudo initctl list\
 \
 {\field{\*\fldinst{HYPERLINK "http://technosophos.com/2013/03/06/how-use-ubuntus-upstart-control-nodejs-forever.html"}}{\fldrslt http://technosophos.com/2013/03/06/how-use-ubuntus-upstart-control-nodejs-forever.html}}\
 (upstart + forever)\
-{\field{\*\fldinst{HYPERLINK "http://michieldemey.be/blog/proxying-websockets-with-nginx-and-socket-io/"}}{\fldrslt http://michieldemey.be/blog/proxying-websockets-with-nginx-and-socket-io/}}\
+{\field{\*\fldinst{HYPERLINK "http://michieldemey.be/blog/proxying-websockets-with-nginx-and-socket-io/"}}{\fldrslt http://blog.martinfjordvald.com/2013/02/websockets-in-nginx/}}\
 (nginx)}
