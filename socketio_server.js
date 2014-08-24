@@ -2,7 +2,13 @@
 //
 // Bereket Abraham
 
-var port = parseInt( process.argv[2] );
+var port = 9000
+var idx = process.argv.indexOf("-p");
+
+if (idx >= 0 && idx < process.argv.length) {
+    port = parseInt( process.argv[idx + 1] );
+}
+console.log(JSON.stringify(process.argv));
 
 //var mongojs = require('mongojs');
 var io      = require('socket.io').listen(port);

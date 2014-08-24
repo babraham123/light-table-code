@@ -16,11 +16,11 @@ socket.on('connect', function(msg) {
 });
 
 socket.on('remote_update', function(msg) {
-    console.log('remote_update: ' + msg);
+    console.log('remote_update: ' + JSON.stringify(msg));
 });
 
 socket.on('remote_updates', function(msg) {
-    console.log('remote_updates: ' + msg);
+    console.log('remote_updates: ' + JSON.stringify(msg));
 });
 
 socket.on('disconnect', function(msg) {
