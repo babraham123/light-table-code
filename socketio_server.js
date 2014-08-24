@@ -3,7 +3,7 @@
 // Bereket Abraham
 
 var port = 9000
-var idx = process.argv.indexOf("-p");
+var idx = process.argv.indexOf("--port");
 
 if (idx >= 0 && idx < process.argv.length) {
     port = parseInt( process.argv[idx + 1] );

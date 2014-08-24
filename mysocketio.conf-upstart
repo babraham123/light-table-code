@@ -21,7 +21,7 @@ script
         test -d $LOGDIR || mkdir -p $LOGDIR
         cd /home/$USER/$NAME
 
-        exec forever start -a -l $LOGFILE -o $OUTFILE -e $ERRFILE $MAINFILE -p $PORT
+        exec forever start -a -l $LOGFILE -o $OUTFILE -e $ERRFILE $MAINFILE --port $PORT
 end script
 
 post-start script
