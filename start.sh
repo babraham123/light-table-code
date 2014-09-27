@@ -13,9 +13,9 @@ SPIN_SLEEP_TIME=2000
 test -d $LOGDIR || mkdir -p $LOGDIR
 cd /home/$USER/$NAME
 
-exec forever -a -l $LOGFILE -o $OUTFILE -e $ERRFILE \ 
+forever -a -l $LOGFILE -o $OUTFILE -e $ERRFILE \
       --minUptime $MIN_UPTIME --spinSleepTime $SPIN_SLEEP_TIME \
       start $MAINFILE --port $PORT
 
-echo "mysocketio started through forever + upstart"
+forever list
 

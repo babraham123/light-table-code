@@ -8,12 +8,12 @@
   <meta name="description" content="FabricJS codelab" />
   <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
 
-  <link rel="icon" href="static/favicon.ico" type="image/x-icon" >
-  <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon" >
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" >
+  <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" >
 
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
-  <link rel="stylesheet" href="static/custom.css">
+  <link rel="stylesheet" href="/static/custom.css">
 
   <style type="text/css">
       canvas { border: 1px solid black; }
@@ -56,34 +56,36 @@
     fabric.Object.prototype.selectedStart = -1;
 
     rect = new fabric.Rect({
-        left: 40,
-        top: 40,
-        fill: '#CCCCCC',
-        width: 200,
-        height: 200,
+        left: 30,
+        top: 30,
+        fill: '#BBBBBB',
+        width: 300,
+        height: 300,
         hasControls: false,
         hasBorders: false,
         lockMovementX: true,
         lockMovementY: true,
         //selectable: false,
         perPixelTargetFind: true,
-        targetFindTolerance: offset
+        targetFindTolerance: 10,
+        selectedStart: -1
     });
     table1.add(rect);
 
     rect2 = new fabric.Rect({
-        left: 240,
-        top: 40,
-        fill: '#CCCCCC',
-        width: 200,
-        height: 200,
+        left: 360,
+        top: 30,
+        fill: '#DDDDDD',
+        width: 300,
+        height: 300,
         hasControls: false,
         hasBorders: false,
         lockMovementX: true,
         lockMovementY: true,
         //selectable: false,
         perPixelTargetFind: true,
-        targetFindTolerance: offset
+        targetFindTolerance: 10,
+        selectedStart: -1
     });
     table1.add(rect2);
     
@@ -94,7 +96,7 @@
                 e.target.selectedStart = Date.now();
 
                 console.log('mouse down: ');
-                //table1.renderAll();
+                table1.renderAll();
             }
         }
     });

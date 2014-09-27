@@ -5,7 +5,7 @@
     var table1 = null;
     var lenr = 10;
     var lenc = 15;
-    var socketServer = '//192.168.1.6:8080';   //'//192.168.1.145:8080'
+    var socketServer = window.location.protocol + '//bereketabraham.com/table'; // '//192.168.1.6:8080';
 
     function pad(a,b){return(1e15+a+"").slice(-b)}
     if (!Date.now) {
@@ -81,7 +81,9 @@
     // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
     var connectionSetup = function() {
         // connect to the host server
-        var socket = io.connect(socketServer);
+        var socket = io.connect(socketServer, {
+            'path': '/table/socket.io'
+        });
 
         console.log('connection created');
 
