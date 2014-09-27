@@ -93,8 +93,10 @@
             // update the state of the table based on remote change
             var ind = parseInt( colormsg.substring(0, 3) );
             var color = colormsg.substring(4, colormsg.length);
+            
             colorArr[ind].set('fill', color);
-            table1.renderAll();
+            colorArr[ind].set('opacity', 1);
+            table1.renderAll();            
         });
 
         socket.on('remote_updates', function(msg) {
@@ -110,9 +112,6 @@
             table1.renderAll();
         });
 
-        // get initial state of table
-        socket.emit('initial_state', null);
-
         // emit the state of the table based on local changes
         table1.on('mouse:up', function(e) {
             if (e.target && e.target.get('tableIndex') !== -1) {
@@ -123,13 +122,15 @@
                 console.log(JSON.stringify( selectedTime ));
                 activeObj.set('selectedStart', -1);
 
-                activeObj.set('fill', '#FFAA33');
-                activeObj.opacity = 1;
-                table1.renderAll();
+                var objColor = '#FFAA33';
+                // delay until received by server
+                //activeObj.set('fill', objColor);
+                //activeObj.opacity = 1;
+                //table1.renderAll();
 
-                var msg = pad(activeObj.get('tableIndex'), 3) + ":" + activeObj.get('fill');
-                console.log('mouse up: ' + msg);
+                var msg = pad(activeObj.get('tableIndex'), 3) + ":" + objColor;
                 socket.emit('local_update', msg);
+                console.log('msg sent');
             }
         });
 
@@ -140,6 +141,9 @@
         socket.on('error', function(msg) {
             console.log('errored: ' + JSON.stringify(msg));
         });
+
+        // get initial state of table
+        socket.emit('initial_state', null);
 
     }
 

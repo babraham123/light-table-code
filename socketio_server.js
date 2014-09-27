@@ -67,7 +67,8 @@ io.on('connection', function(socket) {
         colorArr[ind] = colormsg.substring(4, colormsg.length);
         
         // set color, forward to controller
-        socket.broadcast.emit('remote_update', colormsg);
+        //socket.broadcast.emit('remote_update', colormsg);
+        io.emit('remote_update', colormsg);
     });
 
 

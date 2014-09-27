@@ -7,7 +7,7 @@ var io = require('socket.io-client');
 
 
 // Use with Express 3/4 or standalone server. use io() for http server
-var socket = io.connect('http://bereketabraham.com/socket.io');
+var socket = io.connect('http://bereketabraham.com/table');
 
 // comm API
     // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
