@@ -32,6 +32,9 @@ for (var y = 0; y < lenr; y++) {
 // create zero padding function
 function pad(a,b){return(1e15+a+"").slice(-b)}
 
+//io.set('transports', ['websocket']);
+//io.set('log level', 1);
+
 // comm API
 // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
 io.on('connection', function(socket) {
@@ -68,6 +71,7 @@ io.on('connection', function(socket) {
         
         // set color, forward to controller
         //socket.broadcast.emit('remote_update', colormsg);
+        //socket.emit('remote_update', colormsg);
         io.emit('remote_update', colormsg);
     });
 

@@ -5,7 +5,7 @@
     var table1 = null;
     var lenr = 10;
     var lenc = 15;
-    var socketServer = window.location.protocol + '//bereketabraham.com/table'; // '//192.168.1.6:8080';
+    var socketServer = window.location.protocol + '//bereketabraham.com:8080'; // '//192.168.1.6:8080';
 
     function pad(a,b){return(1e15+a+"").slice(-b)}
     if (!Date.now) {
@@ -81,14 +81,12 @@
     // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
     var connectionSetup = function() {
         // connect to the host server
-        var socket = io.connect(socketServer, {
-            'path': '/table/socket.io'
-        });
+        var socket = io.connect(socketServer);
 
         console.log('connection created');
 
-        socket.on('remote_update', function(msg) {
-            console.log('remote_update: ' + msg);
+        socket.on('remote_update', function(colormsg) {
+            console.log('remote_update: ' + colormsg);
 
             // update the state of the table based on remote change
             var ind = parseInt( colormsg.substring(0, 3) );
