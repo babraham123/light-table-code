@@ -3,11 +3,15 @@
     var _self = this;
     var colorArr = [];
     var table1 = null;
+    var clearbtn = null;
     var lenr = 10;
     var lenc = 15;
     var socketServer = window.location.protocol + '//bereketabraham.com:8080'; // '//192.168.1.6:8080';
 
-    function pad(a,b){return(1e15+a+"").slice(-b)}
+    var pad = function(a,b) {
+        return (1e15+a+"").slice(-b)
+    }
+
     if (!Date.now) {
         Date.now = function() { return new Date().getTime(); };
     }
@@ -22,6 +26,8 @@
         // set debugging
         //localStorage.debug='*';
         localStorage.debug='';
+
+        clearbtn = $('#clearbtn');
 
         tableSetup();
         connectionSetup();
@@ -130,6 +136,10 @@
                 socket.emit('local_update', msg);
                 console.log('msg sent');
             }
+        });
+
+        clearbtn.click(function() {
+            socket.emit('clear_state', 'clearing colors...');
         });
 
         socket.on('disconnect', function(msg) {
