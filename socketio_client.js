@@ -1,5 +1,5 @@
 // Socket.io client to collect and send light commands to the light table
-// Sits between the raspberry pi and the arduino microcontroller
+// Sits on the raspberry pi between the server and arduino microcontroller
 //
 // Bereket Abraham
 
@@ -113,4 +113,5 @@ socket.on('error', function(msg) {
 });
 
 // get initial state of table
-socket.emit('initial_state', null);
+socket.emit('initial_state', 'n/a');
+
