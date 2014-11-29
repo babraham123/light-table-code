@@ -11,7 +11,7 @@ Author: Bereket Abraham
 #define DATA_PIN 6
 #define STATUS_PIN 3
 #define BUFFER_SIZE 5
-#define DEBUG false
+#define DEBUG true
 
 CRGB leds[NUM_LEDS];
 int serialBuffer[] = {0,0,0,0,0};
