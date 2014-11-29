@@ -1,0 +1,135 @@
+/***
+Arduino controller script for a interactive, light up table.
+
+Author: Bereket Abraham
+***/
+
+#include <SPI.h>
+#include <Ethernet.h>
+#include "FastSPI_LED2.h"
+#include "SocketIOClient.h"
+
+#define STATUS_PIN 3
+#define KEY "amazing1"
+#define MSG_SIZE 11
+
+#define NUM_LEDS 50
+#define DATA_PIN 6
+CRGB leds[NUM_LEDS];
+
+#define DEBUG true
+
+byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xF5, 0xE4 };
+//char server[] = "bereketabraham.com";
+char server[] = "192.168.1.145";
+int port = 8080;
+SocketIOClient client;
+
+
+void setup() {
+    Serial.begin(57600);
+
+    // Set the LED controller
+    delay(2000);
+    FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS);
+    blackout();
+    if(DEBUG) { Serial.println("Lights engaged"); }
+
+    // Set the status light
+    pinMode(STATUS_PIN, OUTPUT);
+
+    Ethernet.begin(mac);
+    // set up the websockets connection
+    client.setDataArrivedDelegate(ondata);
+
+    if (!client.connect(server, port)) {
+        Serial.println("Not connected.");
+        digitalWrite(STATUS_PIN, LOW);
+    }
+    if (client.connected()) {
+        client.send("initial_state_single");
+        digitalWrite(STATUS_PIN, HIGH);
+    }
+}
+
+void loop() {
+    client.monitor();
+    //FastLED.show();
+}
+
+void ondata(SocketIOClient client, char *data) {
+    // websockets message handler: do something with command from server
+
+    if(DEBUG) { Serial.println(data); }
+
+    // decode the data string
+    String sdata = String(data);
+    int index = (int) (sdata.substring(0,3)).toInt();
+    if(index >= NUM_LEDS) {
+        if(DEBUG) { Serial.println("Index out of range"); }
+        return;
+    }
+
+    // get rid of the # from the color str
+    sdata = sdata.substring(5, MSG_SIZE);
+    // setColor(index, processColorMsg(sdata));
+}
+
+unsigned long processColorMsg(String color) {
+    // Converts a String msg into an index (int) and the 6 letter hex color values (string)
+    // Converts the 3 byte string (in hex) to an unsigned long.
+    // ie "001:#FF00AA"
+    // total chars in message: 11
+
+    // -4 from the index, +1 for the null terminator
+    char charBuf[MSG_SIZE - 5 + 1];
+    color.toCharArray(charBuf, MSG_SIZE - 5 + 1);
+
+    // RGB, 0xFFAACC, 3 bytes
+    unsigned long hexcolor = (getVal(charBuf[0]) << 20) + (getVal(charBuf[1]) << 16)
+     + (getVal(charBuf[2]) << 12) + (getVal(charBuf[3]) << 8)
+     + (getVal(charBuf[4]) << 4) + getVal(charBuf[5]);
+
+    return hexcolor;
+}
+
+unsigned long getVal(char c) {
+    // helper function, convert hex string to byte
+    if(c >= '0' && c <= '9') {
+        return (byte)(c - '0'); 
+    } else {
+        return (byte)(c-'A'+10);
+    }
+}
+
+void setColor(int index, unsigned long hexcolor) {
+    // Accepts the LED index (int) and the 3 byte color # (unsigned long)
+    
+    //leds[index] = CRGB::White;
+    leds[index] = hexcolor;
+    FastLED.show();
+
+    if(DEBUG) { 
+        Serial.print("Color " + String(index) + " : ");
+        Serial.println(hexcolor, HEX); 
+    }
+}
+
+void blackout() {
+    for(int i = 0; i < NUM_LEDS; i++) 
+    { leds[i] = CRGB::Black; }
+
+    FastLED.show();
+    delay(2000);
+}
+void loop_lights() {
+  // Move a single white led 
+    for(int whiteLed = 0; whiteLed < NUM_LEDS; whiteLed++) {
+        leds[whiteLed] = CRGB::White;
+        // Show the leds (only one of which is set to white, from above)
+        FastLED.show();
+
+        delay(200);
+        leds[whiteLed] = CRGB::Black;
+    }
+}
