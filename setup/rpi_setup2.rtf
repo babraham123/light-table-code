@@ -1,0 +1,79 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf210
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 Assumes a fully setup and ready to go Raspberry Pi. Please see the previous post for more info.\
+\
+--------------------------------------------------------------\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f1\fs22 \cf0 \CocoaLigature0 (install C code remotely)
+\f0\fs24 \CocoaLigature1 \
+
+\f1\fs22 \CocoaLigature0 (plug in arduino)\
+ls /dev/tty*\
+(locate the correct usb port, something like /dev/ttyAMC0)\
+\
+sudo apt-get install g++ autoconf automake\
+sudo apt-get install arduino-core\
+sudo apt-get install arduino-mk\
+sudo apt-get install python-serial\
+\
+sudo pip install pyserial\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 \CocoaLigature1 --------------------------------------------------------------
+\f1\fs22 \CocoaLigature0 \
+<<< Makefile\
+\
+BOARD_TAG     = uno\
+ARDUINO_PORT  = /dev/ttyACM0\
+ARDUINO_LIBS = FastSPI_LED2\
+USER_LIB_PATH = /home/babraham/light-table-code/libraries\
+\
+MONITOR_BAUDRATE = 9600\
+MONITOR_PORT  = /dev/ttyACM0\
+\
+include /usr/share/arduino/Arduino.mk\
+\
+
+\f0\fs24 \CocoaLigature1 --------------------------------------------------------------
+\f1\fs22 \CocoaLigature0 \
+\
+sudo make upload\
+(compile and upload arduino code)\
+\
+make (compile)\
+clean\
+make monitor (view serial port)\
+(other commands)\
+\
+sudo node socketio_client.js\
+(start socket client and serial listener)\
+\
+(on server)\
+sudo node socketio_server.js\
+\
+\
+------------------------------------\
+(alternative makefile)\
+\pard\pardeftab720\sl300
+\cf0 sudo apt-get install arduino\
+\
+\
+{\field{\*\fldinst{HYPERLINK "http://ed.am/dev/make/arduino-mk"}}{\fldrslt http://ed.am/dev/make/arduino-mk}}\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \
+----------------------------------\
+\
+Issues::::\
+FIX avr-g++ -mmcu problem with arduino makefile\
+\
+{\field{\*\fldinst{HYPERLINK "https://github.com/sudar/Arduino-Makefile"}}{\fldrslt http://www.mjoldfield.com/atelier/2009/02/arduino-cli.html}}\
+{\field{\*\fldinst{HYPERLINK "http://hardwarefun.com/tutorials/compiling-arduino-sketches-using-makefile"}}{\fldrslt http://hardwarefun.com/tutorials/compiling-arduino-sketches-using-makefile}}\
+(compile and upload arduino from linux)\
+\
+}

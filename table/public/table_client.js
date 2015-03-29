@@ -8,6 +8,7 @@
     var lenc = 15;
     var socketServer = window.location.protocol + '//bereketabraham.com:8080'; // '//192.168.1.6:8080';
 
+    // pad a with enough zeros to fill b digits
     var pad = function(a,b) {
         return (1e15+a+"").slice(-b)
     }

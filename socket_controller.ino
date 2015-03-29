@@ -5,7 +5,7 @@ Author: Bereket Abraham
 #include "FastSPI_LED2.h"
 
 // col 13, row 8
-#define NUM_LEDS 104
+#define NUM_LEDS 105
 #define COL_SIZE 13
 #define ROW_SIZE 8
 #define DATA_PIN 6
