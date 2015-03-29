@@ -19,29 +19,52 @@
         return ss;
     }
 
-    var setColorFromTime1 = function(time, oldcolor) {
-        var newcolor = ''
+    var hexToColor = function(hex) {
+        var ss = hex.toString(16).toUpperCase();
+        while(ss.length < 6) {
+            ss = '0' + ss;
+        }
+        return '#' + ss;
+    }
+
+    var rollWithOdds = function(odds) {
+        var r = Math.floor( Math.random() * odds);
+        return (r === 0);
+    }
+
+    var setColorByValue = function(oldcolor, adder) {
+        var newcolor = '';
         oldcolor = oldcolor.substring(1, oldcolor.length);
         var colhex = parseInt(oldcolor, 16);
 
-        colhex = (colhex + time) % MAXCOLOR;
-        newcolor = hexToStr(colhex);
-        console.log('color from time: ' + newcolor);
-        return '#' + newcolor;
+        colhex = (colhex + adder) % MAXCOLOR;
+        newcolor = hexToColor(colhex);
+        //console.log('color from time: ' + newcolor);
+        return newcolor;
     }
 
-    var setColorFixed = function(oldcolor) {
-        var newcolor = ''
-        oldcolor = oldcolor.substring(1, oldcolor.length);
-        for(var i = 0; i < 6; i+=2) {
-            var colstr = oldcolor.substring(i,i+2);
-            var colhex = parseInt(colstr, 16);
+    var scrambleColors = function(color) {
+        var colorArr = ['', '', ''];
+        colorArr[0] = color.substring(1,3);
+        colorArr[1] = color.substring(3,5);
+        colorArr[2] = color.substring(5);
 
-            colhex = (colhex + 16) % 255;
-            newcolor += hexToStr(colhex);
+        var indices = generateRandomRangeUnique(colorArr.length);
+        color = '#';
+        for (var j = 0; j < indices.length; j++) {
+            color = color + colorArr[indices[j]];
         }
-        console.log('color set beat: ' + newcolor);
-        return '#' + newcolor;
+        return color;
+    }
+
+    var generateRandomRangeUnique = function(size) {
+        var used = [];
+        var current;
+        for (var i = 0; i < size; i++) {
+            while ( used.indexOf(current = (Math.floor(Math.random() * size))) != -1 );
+            used.push(current);
+        }
+	return used;
     }
 
     // set the canvas
@@ -55,7 +78,7 @@
     rect1 = new fabric.Rect({
         left: 30,
         top: 30,
-        fill: '#BBBBBB',
+        fill: '#000000',
         width: 300,
         height: 300,
         hasControls: false,
@@ -73,7 +96,7 @@
     rect2 = new fabric.Rect({
         left: 360,
         top: 30,
-        fill: '#DDDDDD',
+        fill: '#000000',
         width: 300,
         height: 300,
         hasControls: false,
@@ -87,42 +110,55 @@
         tableIndex: 2
     });
     table1.add(rect2);
-
+    /*
     table1.on({
         'object:selected': function(e) {     // 'mouse:down'
             if (e.target) {
                 e.target.opacity = 0.5;
                 e.target.selectedStart = Date.now();
 
-                console.log('mouse down');
+                //console.log('mouse down');
                 table1.renderAll();
             }
         }
     });
+    */
+
+    table1.on('mouse:down', function(e) {
+        if (e.target && e.target.get('selectedStart') === -1) {
+           var activeObj = e.target;
+           activeObj.opacity = 0.5;
+           activeObj.selectedStart = Date.now();
+
+           //console.log('mouse down');
+           table1.renderAll();
+       }
+    });
 
     table1.on('mouse:up', function(e) {
-        if (e.target && e.target.get('tableIndex') === 1) {
+        if (e.target && e.target.get('selectedStart') > -1) {
             var activeObj = e.target;
 
             var selectedTime = Date.now() - activeObj.selectedStart;
             // use time to determine the color of the rect
-            console.log('mouse up: ' + JSON.stringify( selectedTime ));
             activeObj.set('selectedStart', -1);
 
-            var newcolor = setColorFromTime1(selectedTime, activeObj.get('fill'));
-            activeObj.set('fill', newcolor);
-            activeObj.opacity = 1;
-            table1.renderAll();
+	    if (activeObj.tableIndex === 1) {
+                var newcolor = setColorByValue(activeObj.get('fill'), selectedTime * 10);
+            } else if (activeObj.tableIndex === 2) {
+                var newcolor = setColorByValue(activeObj.get('fill'), 500);
+	    } else {
+		var newcolor = "#FF33AA";
+	    }
 
+	    newcolor = scrambleColors(newcolor);
+	    activeObj.set('fill', newcolor);
+            activeObj.set('opacity', 1);
+            console.log('color: ' + newcolor + ' | mouse up: ' + JSON.stringify( selectedTime ));
+            
+            table1.renderAll();
         }
     });
 
-    var colorStepper = setInterval(function() {
-      var nextcolor = setColorFixed(rect2.get('fill'));
-      rect2.set('fill', nextcolor);
-      table1.renderAll();
-    }, 1000);
-
 })();
-
 
