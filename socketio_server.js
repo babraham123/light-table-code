@@ -18,8 +18,8 @@ var io      = require('socket.io').listen(port);
 //var db = mongojs('username:password@localhost/mydb', ['lightTables']);
 
 // initialize table values, array to hold light values
-var lenr = 10;
-var lenc = 15;
+var lenr = 8;
+var lenc = 13;
 var colorArr = new Array(lenr * lenc);
 
 function resetColors(arr) {
