@@ -12,7 +12,7 @@ Author: Bereket Abraham
 #define STATUS_PIN 3
 #define BUFFER_SIZE 10
 #define ESCAPE 'X'
-#define DEBUG true
+#define DEBUG false
 
 CRGB leds[NUM_LEDS];
 char serialBuffer[BUFFER_SIZE];
@@ -46,7 +46,7 @@ void setColor(unsigned int index, unsigned int r,
         unsigned int g, unsigned int b) {
     // Accepts the LED index and the 3 byte color
     
-    leds[index].setRGB( r, g, b);
+    leds[index].setRGB(r, g, b);
     FastLED.show();
 
     if(DEBUG) {
@@ -54,6 +54,7 @@ void setColor(unsigned int index, unsigned int r,
         Serial.print(r, HEX);
         Serial.print(g, HEX);
         Serial.println(b, HEX);
+        Serial.flush();
     }
 }
 
@@ -81,11 +82,11 @@ void loop_lights() {
     // Move a single white led
     unsigned int whiteLed = 0;
     for(unsigned int i = 0; i < NUM_LEDS; i++) {
-        //unsigned int whiteLed = mapIndex(ind);
-        whiteLed = i;
+        whiteLed = mapIndex(i);
+        //whiteLed = i;
         leds[whiteLed] = CRGB::White;
         FastLED.show();
-        delay(200);
+        delay(30);
         leds[whiteLed] = CRGB::Black;
     }
 }
@@ -137,6 +138,7 @@ void setup() {
     if(DEBUG) { 
         Serial.println("Lights engaged"); 
         loop_lights();
+        blackout();
     }
 
     // Set the status light
