@@ -4,7 +4,9 @@
 // Bereket Abraham
 
 var io = require('socket.io-client'),
-    serialPort = require("serialport");
+    serialPort = require('serialport');
+
+var socket_url = 'http://bereketabraham.com:8080';
 
 // initialize table values, array to hold light values
 var lenr = 8;
@@ -24,14 +26,18 @@ serialPort.list(function (err, ports) {
         }
     });
 });
-console.log(port);
+console.log(JSON.stringify(port));
 // open serial connection
 var serial = new serialPort.SerialPort(port, {
   baudrate: 9600
 });
 
-serial.on('open', function() {
-    console.log('RPI: Serial port opened');
+serial.on('open', function(error) {
+    if (error) {
+        console.log('RPi: Port failed to open: '+error);
+    } else {
+        console.log('RPi: Serial port opened');
+    }
 
     // react to arduino sensed events
     serial.on('data', function(data) {
@@ -39,13 +45,13 @@ serial.on('open', function() {
     });
 
     serial.on('close', function(data) {
-        console.log( 'RPI: Serial port closed: ' + JSON.stringify(data) );
+        console.log( 'RPi: Serial port closed: ' + JSON.stringify(data) );
     });
 
     serial.on('error', function(error) {
-        console.log( 'RPI: Serial port error: ' + JSON.stringify(error) );
+        console.log( 'RPi: Serial port error: ' + JSON.stringify(error) );
     });
-    serial.drain();
+
 });
 
 
@@ -68,12 +74,17 @@ var sendColorByte = function( colormsg ) {
     var buf = Buffer.concat( [buf1, buf2], 5 );
 
     serial.write(buf, function(error) {
-        console.log('RPI: serial error: ' + JSON.stringify(error));
-      });
+        console.log('RPi: serial error: ' + JSON.stringify(error));
+    });
 
-    // necessary??
-    serial.drain();
+    serial.write(buf, function(err, results) {
+        console.log('RPi: err ' + err);
+        console.log('Arduino: results ' + results);
 
+        serial.drain( function() {
+            console.log('RPi: drained');
+        });
+    });
 }
 
 var sendColor = function( colormsg ) {
@@ -86,15 +97,16 @@ var sendColor = function( colormsg ) {
 }
 
 // Use with Express 3/4 or standalone server. use io() for http server
-var socket = io.connect('http://bereketabraham.com:8080');
+var socket = io.connect(socket_url);
 
 // comm API
-    // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
+// 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
 socket.on('connect', function(msg) {
     console.log('Server: connected: ' + JSON.stringify(msg));
 });
 
 socket.on('remote_update', function(msg) {
+    // '001:#AA44FF'
     console.log('Server: remote_update: ' + msg);
     sendColor(msg);
 });
@@ -118,5 +130,6 @@ socket.on('error', function(msg) {
 });
 
 // get initial state of table
-socket.emit('initial_state', 'n/a');
+socket.emit('initial_state', 'qq');
+
 
