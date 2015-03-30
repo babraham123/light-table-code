@@ -95,7 +95,7 @@ var sendColor = function( colormsg ) {
 
     serial.write(index + colorhex + 'X');
     serial.drain();
-    sleep.sleep(n)
+    sleep.sleep(0.1)
 }
 
 // Use with Express 3/4 or standalone server. use io() for http server
