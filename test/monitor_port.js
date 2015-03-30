@@ -35,5 +35,13 @@ serial.on('open', function() {
     serial.on('error', function(error) {
         console.log( 'Serial port error: ' + JSON.stringify(error) );
     });
+
+    serial.write('ltable is awesome', function (err, results) {
+        console.log('Wrote: ' + err+results);
+        serial.drain(function () {
+            console.log('drained');
+        });
+    });
+
 });
 

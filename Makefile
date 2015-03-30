@@ -1,5 +1,5 @@
 BOARD := uno
-# ARDUINODIR := ~/somewhere/arduino-1.0
+# ARDUINODIR := /usr/bin/arduino
 # SERIALDEV := /dev/ttyACM0
 
 include ~/socket_controller/arduino.mk
