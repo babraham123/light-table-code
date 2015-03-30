@@ -5,6 +5,7 @@
 
 var io = require('socket.io-client'),
     serialPort = require('serialport');
+    sleep = require('sleep');
 
 var socket_url = 'http://bereketabraham.com:8080';
 
@@ -94,6 +95,7 @@ var sendColor = function( colormsg ) {
 
     serial.write(index + colorhex + 'X');
     serial.drain();
+    sleep.sleep(n)
 }
 
 // Use with Express 3/4 or standalone server. use io() for http server

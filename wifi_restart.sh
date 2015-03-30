@@ -1,5 +1,5 @@
 #!/bin/bash
-# nohup /home/pi/socket_controller/wifi_restart.sh > /dev/null 2>&1 &
+# nohup sh /home/pi/socket_controller/wifi_restart.sh > /dev/null 2>&1 &
 
 while true ; do
    if ifconfig wlan0 | grep -q "inet addr:" ; then
