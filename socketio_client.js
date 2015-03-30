@@ -7,15 +7,12 @@ var io = require('socket.io-client'),
     serialPort = require("serialport");
 
 // initialize table values, array to hold light values
-var lenr = 10;
-var lenc = 15;
+var lenr = 8;
+var lenc = 13;
 var colorArr = new Array(lenr * lenc);
 
-for (var y = 0; y < lenr; y++) {
-    for (var x = 0; x < lenc; x++) {
-        var index = y*lenc + x;
-        colorArr[index] = '22CCCC';
-    }
+for (var i = 0; i < lenr * lenc; i++) {
+    colorArr[i] = '000000';
 }
 
 // locate the arduino serial port
@@ -34,19 +31,19 @@ var serial = new serialPort.SerialPort(port, {
 });
 
 serial.on('open', function() {
-    console.log('Serial port opened');
+    console.log('RPI: Serial port opened');
 
     // react to arduino sensed events
     serial.on('data', function(data) {
-        console.log( 'serial: ' + data.toString('ascii') );
+        console.log( 'Arduino: ' + data.toString('ascii') );
     });
 
     serial.on('close', function(data) {
-        console.log( 'Serial port closed: ' + JSON.stringify(data) );
+        console.log( 'RPI: Serial port closed: ' + JSON.stringify(data) );
     });
 
     serial.on('error', function(error) {
-        console.log( 'Serial port error: ' + JSON.stringify(error) );
+        console.log( 'RPI: Serial port error: ' + JSON.stringify(error) );
     });
     serial.drain();
 });
@@ -61,18 +58,17 @@ var intToHex = function ( num, digits ) {
     return hex;
 }
 
-var sendColor = function( colormsg ) {
+var sendColorByte = function( colormsg ) {
     var ind = parseInt( colormsg.substring(0, 3) );
     var colorhex = colormsg.substring(5, colormsg.length);
     colorArr[ind] = colorhex;
 
     var buf1 = new Buffer( intToHex(ind, 4), 'hex' );
-
     var buf2 = new Buffer( colorhex, 'hex' );
     var buf = Buffer.concat( [buf1, buf2], 5 );
 
     serial.write(buf, function(error) {
-        console.log('serial error: ' + JSON.stringify(error));
+        console.log('RPI: serial error: ' + JSON.stringify(error));
       });
 
     // necessary??
@@ -80,22 +76,31 @@ var sendColor = function( colormsg ) {
 
 }
 
+var sendColor = function( colormsg ) {
+    var index = colormsg.substring(0, 3);
+    var colorhex = colormsg.substring(5, colormsg.length);
+    colorArr[parseInt( index )] = colorhex;
+
+    serial.drain();
+    serial.write(index + colorhex + 'X');
+}
+
 // Use with Express 3/4 or standalone server. use io() for http server
-var socket = io.connect('http://bereketabraham.com/table');
+var socket = io.connect('http://bereketabraham.com:8080');
 
 // comm API
     // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
 socket.on('connect', function(msg) {
-    console.log('connected: ' + JSON.stringify(msg));
+    console.log('Server: connected: ' + JSON.stringify(msg));
 });
 
 socket.on('remote_update', function(msg) {
-    console.log('remote_update: ' + msg);
+    console.log('Server: remote_update: ' + msg);
     sendColor(msg);
 });
 
 socket.on('remote_updates', function(msg) {
-    console.log('remote_updates: ' + msg);
+    console.log('Server: remote_updates');
 
     // set the initial state of the table
     var initialColors = msg.split(',');
@@ -105,11 +110,11 @@ socket.on('remote_updates', function(msg) {
 });
 
 socket.on('disconnect', function(msg) {
-    console.log('disconnected: ' + JSON.stringify(msg));
+    console.log('Server: disconnected: ' + JSON.stringify(msg));
 });
 
 socket.on('error', function(msg) {
-    console.log('errored: ' + JSON.stringify(msg));
+    console.log('Server: errored: ' + JSON.stringify(msg));
 });
 
 // get initial state of table

@@ -4,8 +4,9 @@
     var colorArr = [];
     var table1 = null;
     var clearbtn = null;
-    var lenr = 10;
-    var lenc = 15;
+    var lenr = 8;
+    var lenc = 13;
+    var pixelSize = 60;
     var socketServer = window.location.protocol + '//bereketabraham.com:8080'; // '//192.168.1.6:8080';
 
     // pad a with enough zeros to fill b digits
@@ -43,14 +44,14 @@
 
         for (var y = 0; y < lenr; y++) {
             for (var x = 0; x < lenc; x++) {
-                var w = 40;
-                var h = 40;
-                var offset = 3;
+                var w = pixelSize;
+                var h = pixelSize;
+                var offset = 4;
                 var index = y*lenc + x;
 
                 var rect = new fabric.Rect({
-                    left: x*w + 40,
-                    top: y*h + 40,
+                    left: x*w + pixelSize,
+                    top: y*h + pixelSize,
                     fill: '#CCCCCC',
                     width: w - offset,
                     height: h - offset,
