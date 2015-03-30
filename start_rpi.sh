@@ -14,7 +14,7 @@ script
     # Not sure why $HOME is needed, but we found that it is:
     export HOME="/root"
 
-    sleep 60000
+    sleep 60
     exec /usr/local/bin/node /home/pi/socket_controller/socketio_client.js >> /var/log/node.log 2>&1
 end script
 

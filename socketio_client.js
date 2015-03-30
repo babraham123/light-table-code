@@ -93,7 +93,7 @@ var sendColor = function( colormsg ) {
     colorArr[parseInt( index )] = colorhex;
 
     serial.write(index + colorhex + 'X');
-    //serial.drain();
+    serial.drain();
 }
 
 // Use with Express 3/4 or standalone server. use io() for http server
