@@ -10,21 +10,14 @@ Author: Bereket Abraham
 #define NUM_ROW 8
 #define DATA_PIN 6
 #define STATUS_PIN 3
-#define BUFFER_SIZE 10
-#define ESCAPE 'X'
+#define BUFFER_SIZE 15
+#define START_CHAR '^'
+#define END_CHAR '\n'
 #define DEBUG false
 
 CRGB leds[NUM_LEDS];
 char serialBuffer[BUFFER_SIZE];
 int currIndex = 0;
-
-void clearBuffer() {
-    for(int i = 0; i < BUFFER_SIZE; i++) 
-    {
-        serialBuffer[i] = ESCAPE;
-    }
-    currIndex = 0;
-}
 
 unsigned int convertCharHex(char a, char b) {
     // converts two chars in hex format into one unsigned int
@@ -91,42 +84,41 @@ void loop_lights() {
     }
 }
 
+// '^001:AA44FF\n'
 void readFromBuffer() {
-    if(Serial.available() > 0) {
-        char val = Serial.read();
-        if(val == ESCAPE) {
-            unsigned int index = (currIndex + BUFFER_SIZE - 9) % BUFFER_SIZE;
-            unsigned int r = (currIndex + BUFFER_SIZE - 6) % BUFFER_SIZE;
-            unsigned int g = (currIndex + BUFFER_SIZE - 4) % BUFFER_SIZE;
-            unsigned int b = (currIndex + BUFFER_SIZE - 2) % BUFFER_SIZE;
-            
-            // check for short strings
-            if(serialBuffer[index] == ESCAPE) {
-                clearBuffer();
-                return;
-            }
-            // combine index chars (3)
-            index = ((serialBuffer[index] - '0') * 100) + 
-                                 ((serialBuffer[(index+1) % BUFFER_SIZE] - '0') * 10) + 
-                                 (serialBuffer[(index+2) % BUFFER_SIZE] - '0'); 
-            index = mapIndex(index);
-            // get the RGB color, 0xFFAACC (6)
-            r = convertCharHex(serialBuffer[r], serialBuffer[(r+1) % BUFFER_SIZE]);
-            g = convertCharHex(serialBuffer[g], serialBuffer[(g+1) % BUFFER_SIZE]);
-            b = convertCharHex(serialBuffer[b], serialBuffer[(b+1) % BUFFER_SIZE]);
-            
-            setColor(index, r, g, b);
-            clearBuffer();
-        } else {
-            serialBuffer[currIndex] = val;
-            currIndex = (currIndex + 1) % BUFFER_SIZE;
+    char val = Serial.read();
+    if (val == START_CHAR) {
+        currIndex = 0;
+    } else if (val == END_CHAR) {
+        // check for short strings
+        if(currIndex != 9) {
+            currIndex = 0;
+            return;
         }
+        // combine index chars
+        unsigned int index = ((serialBuffer[0] - '0') * 100) + 
+                 ((serialBuffer[1] - '0') * 10) + 
+                 (serialBuffer[2] - '0'); 
+        index = mapIndex(index);
+        // get the RGB color, 0xFFAACC
+        unsigned int r = convertCharHex(serialBuffer[4], serialBuffer[5]);
+        unsigned int g = convertCharHex(serialBuffer[6], serialBuffer[7]);
+        unsigned int b = convertCharHex(serialBuffer[8], serialBuffer[9]);
+        
+        setColor(index, r, g, b);
+    } else {
+        serialBuffer[currIndex] = val;
+        currIndex = (currIndex + 1) % BUFFER_SIZE;
     }
 }
 
 void setup() {
+    for(int i = 0; i < BUFFER_SIZE; i++) {
+        serialBuffer[i] = END_CHAR;
+    }
+    currIndex = 0;
+
     Serial.begin(9600);
-    clearBuffer();
     if(DEBUG) {
         Serial.println("Starting...");
     }
@@ -146,6 +138,8 @@ void setup() {
 }
 
 void loop() {
-    readFromBuffer();
+    if(Serial.available() > 0) {
+        readFromBuffer();
+    }
 }
 

@@ -65,37 +65,16 @@ var intToHex = function ( num, digits ) {
     return hex;
 }
 
-var sendColorByte = function( colormsg ) {
-    var ind = parseInt( colormsg.substring(0, 3) );
-    var colorhex = colormsg.substring(5, colormsg.length);
-    colorArr[ind] = colorhex;
-
-    var buf1 = new Buffer( intToHex(ind, 4), 'hex' );
-    var buf2 = new Buffer( colorhex, 'hex' );
-    var buf = Buffer.concat( [buf1, buf2], 5 );
-
-    serial.write(buf, function(error) {
-        console.log('RPi: serial error: ' + JSON.stringify(error));
-    });
-
-    serial.write(buf, function(err, results) {
-        console.log('RPi: err ' + err);
-        console.log('Arduino: results ' + results);
-
-        serial.drain( function() {
-            console.log('RPi: drained');
-        });
-    });
-}
-
+// '001:#AA44FF'
+// '^001:AA44FF\n'
 var sendColor = function( colormsg ) {
     var index = colormsg.substring(0, 3);
     var colorhex = colormsg.substring(5, colormsg.length);
     colorArr[parseInt( index )] = colorhex;
 
-    serial.write(index + colorhex + 'X');
+    serial.write('^' + index + ':' + colorhex + '\n');
     serial.drain();
-    sleep.sleep(0.1)
+    sleep.sleep(0.05)
 }
 
 // Use with Express 3/4 or standalone server. use io() for http server
