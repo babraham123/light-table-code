@@ -18,6 +18,8 @@ for (var i = 0; i < lenr * lenc; i++) {
     colorArr[i] = '000000';
 }
 
+//////////////// Serial port with Arduino
+
 // locate the arduino serial port
 var port = '/dev/ttyACM0';
 serialPort.list(function (err, ports) {
@@ -65,8 +67,8 @@ var intToHex = function ( num, digits ) {
     return hex;
 }
 
-// '001:#AA44FF'
-// '^001:AA44FF\n'
+// incoming = '001:#AA44FF'
+// outgoing = '^001:AA44FF\n'
 var sendColor = function( colormsg ) {
     var index = colormsg.substring(0, 3);
     var colorhex = colormsg.substring(5, colormsg.length);
@@ -76,6 +78,8 @@ var sendColor = function( colormsg ) {
     serial.drain();
     sleep.sleep(0.05)
 }
+
+////////////////// Socket.io setup
 
 // Use with Express 3/4 or standalone server. use io() for http server
 var socket = io.connect(socket_url);
