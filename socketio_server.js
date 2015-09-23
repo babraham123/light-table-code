@@ -1,8 +1,9 @@
 // Socket.io server to collect and send light commands to the light table
-//
+// Sits on the raspberry pi between the client and arduino microcontroller
+// 
 // Bereket Abraham
 
-var port = 8080
+var port = 8080;
 var idx = process.argv.indexOf("--port");
 
 if (idx >= 0 && idx < process.argv.length) {
@@ -10,25 +11,15 @@ if (idx >= 0 && idx < process.argv.length) {
 }
 console.log(JSON.stringify(process.argv));
 
-//var mongojs = require('mongojs');
-var io      = require('socket.io').listen(port);
+var io         = require('socket.io').listen(port),
+    serialPort = require('serialport');
+    sleep      = require('sleep');
 
-// connect to mongo db server
-//var db = mongojs('mydb', ['lightTables']);
-//var db = mongojs('username:password@localhost/mydb', ['lightTables']);
+////////////////// Data structure to hold light values
 
-// initialize table values, array to hold light values
 var lenr = 8;
 var lenc = 13;
 var colorArr = new Array(lenr * lenc);
-
-function resetColors(arr) {
-    for (var i = 0; i < arr.length; i++) {
-        arr[i] = '#22CCCC';
-    }
-}
-
-resetColors(colorArr);
 
 // zero padding a to b places
 function pad(a,b) {
@@ -44,24 +35,84 @@ function fullColorSet(arr) {
     return msg;
 }
 
-//io.set('transports', ['websocket']);
-//io.set('log level', 1);
+/////////////////// Serial port with Arduino
 
-// comm API
+function getSerialPortDevice() {
+    var device = '/dev/ttyACM0';
+    serialPort.list(function (err, ports) {
+        ports.forEach(function(p) {
+            if (p.pnpId.indexOf('arduino') > -1) {
+                device = p.comName;
+            }
+        });
+    });
+    console.log(JSON.stringify(device));
+    return device;
+}
+
+// open serial connection
+var serial = new serialPort.SerialPort(getSerialPortDevice(), {
+  baudrate: 9600
+});
+
+serial.on('open', function(error) {
+    if (error) {
+        console.log('RPi: Port failed to open: '+error);
+    } else {
+        console.log('RPi: Serial port opened');
+    }
+
+    // react to arduino sensed events
+    serial.on('data', function(data) {
+        console.log( 'Arduino: ' + data.toString('ascii') );
+    });
+
+    serial.on('close', function(data) {
+        console.log( 'RPi: Serial port closed: ' + JSON.stringify(data) );
+    });
+
+    serial.on('error', function(error) {
+        console.log( 'RPi: Serial port error: ' + JSON.stringify(error) );
+    });
+
+});
+
+// incoming = '001:#AA44FF'
+// outgoing = '^001:AA44FF\n'
+var sendColor = function( colormsg ) {
+    var index = colormsg.substring(0, 3);
+    var colorhex = colormsg.substring(5, colormsg.length);
+    colorArr[parseInt( index )] = colorhex;
+
+    serial.write('^' + index + ':' + colorhex + '\n');
+    serial.drain();
+    sleep.sleep(0.05)
+}
+
+function resetColors(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i] = '#22CCCC';
+        sendColor(arr[i]);
+    }
+}
+
+// set the initial state of the table
+resetColors(colorArr);
+
+//////////////////// Communication API
 // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
+
 io.on('connection', function(socket) {
     console.log('connected');
 
     // request for initial set of data
     socket.on('initial_state', function(data) {
-        //var arr = db.mycollection.find({ time_utc:{ $gt : start_time } }).toArray();
         console.log('initial_state');
 
         socket.emit('remote_updates', fullColorSet(colorArr));
     });
 
     socket.on('clear_state', function(data) {
-        // save data in db
         console.log('clear_state');
 
         resetColors(colorArr);
@@ -69,24 +120,14 @@ io.on('connection', function(socket) {
     });
 
     socket.on('local_update', function(colormsg) {
-        /*
-        var entry = {color: colormsg, time_utc: new Date().getTime()}; 
-        db.lightTables.save(entry, function(err, saved) {
-            if( err || !saved ) {
-                console.log("Result not saved");
-            } else {
-                console.log(entry);
-            }
-        });
-        */
         console.log('local_update: ' + colormsg);
         // save state
         var ind = parseInt( colormsg.substring(0, 3) );
         colorArr[ind] = colormsg.substring(4, colormsg.length);
         
-        // set color, forward to controller
-        //socket.broadcast.emit('remote_update', colormsg);
+        // set color, forward to other clients
         io.emit('remote_update', colormsg);
+        sendColor(msg);
     });
 
 

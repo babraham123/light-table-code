@@ -6,9 +6,7 @@
 
     "dependencies" : {
         "socket.io" : "1.x",
-        "mongojs" : "0.13.x",
         "express" : "3.3.x",
-        "socket.io-client" : "x",
         "serialport" : "1.4.6",
         "sleep" : "x"
     },
