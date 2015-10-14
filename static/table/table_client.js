@@ -7,7 +7,7 @@
     var lenr = 8;
     var lenc = 13;
     var pixelSize = 60;
-    var socketServer = window.location.protocol + '//bereketabraham.com:8080'; // '//192.168.1.6:8080';
+    var socketServer = window.location.protocol + '//raspled.com:8080';
 
     // pad a with enough zeros to fill b digits
     var pad = function(a,b) {

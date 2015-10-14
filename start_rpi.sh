@@ -15,7 +15,7 @@ script
     export HOME="/root"
 
     sleep 60
-    exec /usr/local/bin/node /home/pi/socket_controller/socketio_server.js >> /var/log/node.log 2>&1
+    exec /usr/local/bin/node /home/pi/raspsocketio/socketio_server.js >> /var/log/node.log 2>&1
 end script
 
 post-start script
