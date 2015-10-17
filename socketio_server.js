@@ -74,7 +74,7 @@ function openSerialConnection(device) {
 
     serial.on('open', function(error) {
         if (error) {
-            console.log('RPi: Port failed to open: '+error);
+            throw 'RPi: Port failed to open: '+error;
         } else {
             console.log('RPi: Serial port opened');
         }
@@ -87,7 +87,6 @@ function openSerialConnection(device) {
         serial.on('close', function(data) {
             console.log( 'RPi: Serial port closed: ' + JSON.stringify(data) );
         });
-
         serial.on('error', function(error) {
             console.log( 'RPi: Serial port error: ' + JSON.stringify(error) );
         });
@@ -98,9 +97,8 @@ function openSerialConnection(device) {
 // Communication API
 // 'initial_state', 'local_update', 'status_query' => 'remote_updates', 'remote_update'
 function openSocketIOConnection() {
+    console.log('Starting socket.io connection...');
     io.on('connection', function(socket) {
-        console.log('connected');
-
         // request for initial set of data
         socket.on('initial_state', function(data) {
             console.log('initial_state');
@@ -137,7 +135,7 @@ function openSocketIOConnection() {
         socket.on('error', function(data) {
             console.log("errored: " + JSON.stringify(data));
         });
-
+        console.log('connected');
     });
 }
 
