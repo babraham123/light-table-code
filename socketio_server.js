@@ -3,13 +3,16 @@
 // 
 // Bereket Abraham
 
-var port = 8080;
-var idx = process.argv.indexOf("--port");
+var port = 8002;
+var numLed = -1;
+var debug = false;
 
+var idx = process.argv.indexOf("--port");
 if (idx >= 0 && idx < process.argv.length) {
     port = parseInt( process.argv[idx + 1] );
+    console.log("Starting on port " + port.toString());
 }
-console.log(JSON.stringify(process.argv));
+//console.log(JSON.stringify(process.argv));
 
 var io         = require('socket.io').listen(port),
     serialPort = require('serialport');
@@ -19,6 +22,9 @@ var io         = require('socket.io').listen(port),
 
 var lenr = 8;
 var lenc = 13;
+if (numLed === -1) {
+    numLed = lenr * lenc;
+}
 var colorArr = new Array(lenr * lenc);
 
 // zero padding a to b places
@@ -39,13 +45,19 @@ function fullColorSet(arr) {
 
 function getSerialPortDevice() {
     var device = '/dev/ttyACM0';
+    var found = false;
     serialPort.list(function (err, ports) {
         ports.forEach(function(p) {
             if (p.pnpId.indexOf('arduino') > -1) {
                 device = p.comName;
+                found = true;
             }
         });
     });
+    if (found === false && debug === false) {
+        throw "Arduino serial port not found";
+    }
+
     console.log(JSON.stringify(device));
     return device;
 }
