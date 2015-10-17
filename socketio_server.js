@@ -3,7 +3,7 @@
 // 
 // Bereket Abraham
 
-var io         = require('socket.io').listen(port),
+var Server     = require('socket.io'),
     serialPort = require('serialport'),
     sleep      = require('sleep');
 
@@ -14,7 +14,10 @@ var port       = 8002,
     numLed     = lenr * lenc,
     background = '#22CCCC',
     colorArr   = null,
-    serial     = null;
+    serial     = null,
+    colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC',
+                  '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#26374B'],
+    users      = {};
 
 function init() {
     processCmdLineParams();
@@ -95,9 +98,12 @@ function openSerialConnection(device) {
 }
 
 // Communication API
-// 'initial_state', 'local_update', 'status_query' => 'remote_updates', 'remote_update'
+// 'initial_state' => 'remote_updates'
+// 'local_update', 'request_status' => 'remote_update'
+// 'request_color' => 'assign_color'
 function openSocketIOConnection() {
     console.log('Starting socket.io connection...');
+    io = new Server(port);
     io.on('connection', function(socket) {
         // request for initial set of data
         socket.on('initial_state', function(data) {
@@ -124,19 +130,41 @@ function openSocketIOConnection() {
         });
 
         // request for status of a particular led
-        socket.on('status_query', function(data) {
-            console.log('status_query: ' + data);
+        socket.on('request_status', function(data) {
+            console.log('request_status: ' + data);
             socket.emit('remote_update', getColor(data));
         });
 
-        socket.on('disconnect', function(data) {
-            console.log("disconnected: " + JSON.stringify(data));
+        // request a color by user
+        socket.on('request_color', function(id, data) {
+            //socket.broadcast.to(id).emit('my message', msg);
+            socket.emit('assign_color', assignColorByUser(id));
+        });
+
+        socket.on('disconnect', function(id, data) {
+            console.log("disconnected: " + JSON.stringify(id));
+            releaseUser(id);
         });
         socket.on('error', function(data) {
             console.log("errored: " + JSON.stringify(data));
         });
         console.log('connected');
     });
+}
+
+function assignColorByUser(id) {
+    if (colors.length === 0) {
+        return null;
+    }
+    var color = colors.shift();
+    users[id] = color;
+    return color;
+}
+
+function releaseUser(id) {
+    var color = users[id];
+    colors.push(color);
+    delete users[id];
 }
 
 // incoming = '001:#AA44FF'

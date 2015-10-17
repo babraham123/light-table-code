@@ -1,15 +1,16 @@
 (function(){
 
-    var colorArr     = [],
-        table1       = null,
-        clearbtn     = null,
-        lenr         = 8,
-        lenc         = 13,
-        pixelSize    = 60,
-        socket       = null,
-        socketServer = window.location.protocol + '//rasp.com:8080';
+    var colorArr    = [],
+        table1      = null,
+        clearbtn    = null,
+        lenr        = 8,
+        lenc        = 13,
+        pixelSize   = 60,
+        socket      = null,
+        playerColor = '#FFAA33',
+        socketUrl   = window.location.protocol + '//rasp.com:8080';
     
-    var init = function() {
+    function init() {
         colorArr = new Array(lenr * lenc);
 
         // set debugging
@@ -25,7 +26,7 @@
         }
     }
 
-    var createTable = function() {
+    function createTable() {
         // set the canvas
         table1 = new fabric.Canvas('table1', {
             selection: false,
@@ -67,7 +68,7 @@
     }
 
     // sets mouse down listeners for color squares on the table
-    var setTableDownListener = function() {
+    function setTableDownListener() {
         table1.on({
             'object:selected': function(e) {     // 'mouse:down'
                 if (e.target && e.target.get('tableIndex') !== -1) {
@@ -81,7 +82,7 @@
     }
 
     // sets mouse up listeners for color squares on the table
-    var setTableUpListener = function() {
+    function setTableUpListener() {
         // emit the state of the table based on local changes
         table1.on('mouse:up', function(e) {
             if (e.target && e.target.get('tableIndex') !== -1) {
@@ -92,7 +93,7 @@
                 console.log('msg sent: ' + JSON.stringify( selectedTime ));
                 activeObj.set('selectedStart', -1);
 
-                var objColor = '#FFAA33';
+                var objColor = playerColor;
                 // delay until received by server
                 //activeObj.set('fill', objColor);
                 //activeObj.opacity = 1;
@@ -104,18 +105,20 @@
         });
     }
 
-    var setClearBtn = function() {
+    function setClearBtn() {
         clearbtn = $('#clearbtn');
         clearbtn.click(function() {
             socket.emit('clear_state', 'clearing colors');
         });
     }
 
-    // comm API
-    // 'initial_state', 'local_update' => 'remote_updates', 'remote_update'
-    var openConnection = function() {
+    // Communication API
+    // 'initial_state' => 'remote_updates'
+    // 'local_update', 'request_status' => 'remote_update'
+    // 'request_color' => 'assign_color'
+    function openConnection() {
         // connect to the host server
-        socket = io.connect(socketServer);
+        socket = io.connect(socketUrl);
 
         socket.on('remote_update', function(colormsg) {
             console.log('remote_update: ' + colormsg);
@@ -139,6 +142,16 @@
             table1.renderAll();
         });
 
+        socket.on('assign_color', function(color) {
+            if (color == null || color == '') {
+                console.log('Too many players');
+                alert('Too many players in the game. Please wait and refresh.');
+                freezeGame();
+            } else {
+                playerColor = color;
+            }
+        });
+
         socket.on('disconnect', function(msg) {
             console.log('disconnected: ' + JSON.stringify(msg));
         });
@@ -147,12 +160,17 @@
         });
 
         // get initial state of table
+        socket.emit('request_color', null);
         socket.emit('initial_state', null);
         console.log('connection created');
     }
 
+    function freezeGame() {
+        table1.on('mouse:up', function(e) {});
+    }
+
     // pad a with enough zeros to fill b digits
-    var pad = function(a,b) {
+    function pad(a,b) {
         return (1e15+a+"").slice(-b)
     }
 
