@@ -20,6 +20,7 @@
         createTable();
         setTableDownListener();
         openConnection();
+        // TODO: set timer for retry on socket==null
         if (socket != null) {
             setClearBtn();
             setTableUpListener();

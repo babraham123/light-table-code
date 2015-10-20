@@ -14,10 +14,10 @@ var port       = 8002,
     numLed     = lenr * lenc,
     background = '#22CCCC',
     colorArr   = null,
-    serial     = null,
+    serial     = null,  // doesn't attempt serial connection (no LEDs, only console.log)
     colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC',
                   '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#26374B'],
-    users      = {};
+    users      = {};    // maxUsers = colors.length
 
 function init() {
     processCmdLineParams();
@@ -37,14 +37,24 @@ function processCmdLineParams() {
         port = parseInt( process.argv[idx + 1] );
         console.log("Port " + port.toString());
     }
-    var idx = process.argv.indexOf("--num-led");
+    idx = process.argv.indexOf("--row");
+    if (idx >= 0 && idx < process.argv.length-1) {
+        lenr = parseInt( process.argv[idx + 1] );
+        console.log("Number of rows: " + lenr.toString());
+    }
+    idx = process.argv.indexOf("--col");
+    if (idx >= 0 && idx < process.argv.length-1) {
+        lenc = parseInt( process.argv[idx + 1] );
+        console.log("Number of columns: " + lenc.toString());
+    }
+    idx = process.argv.indexOf("--num-led");
     if (idx >= 0 && idx < process.argv.length-1) {
         numLed = parseInt( process.argv[idx + 1] );
         console.log("Number of LEDs in chain: " + numLed.toString());
     } else {
         numLed = lenr * lenc;
     }
-    var idx = process.argv.indexOf("--debug");
+    idx = process.argv.indexOf("--debug");
     if (idx >= 0 && idx < process.argv.length) {
         debug = true;
         console.log("Debug mode");
