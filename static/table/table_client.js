@@ -8,7 +8,7 @@
         pixelSize   = 60,
         socket      = null,
         playerColor = '#FFAA33',
-        socketUrl   = window.location.protocol + '//rasp.com:8080';
+        socketUrl   = window.location.protocol + '//rasp.net:8080';
     
     function init() {
         colorArr = new Array(lenr * lenc);
