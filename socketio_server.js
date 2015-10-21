@@ -12,6 +12,7 @@ var port       = 8002,
     lenr       = 8,
     lenc       = 13,
     numLed     = lenr * lenc,
+    io         = null,
     background = '#22CCCC',
     colorArr   = null,
     serial     = null,  // doesn't attempt serial connection (no LEDs, only console.log)
@@ -136,7 +137,7 @@ function openSocketIOConnection() {
             colorArr[ind] = colormsg.substring(4, colormsg.length);
             // set color, forward to other clients
             io.emit('remote_update', colormsg);
-            sendColor(msg);
+            sendColor(colormsg);
         });
 
         // request for status of a particular led
