@@ -9,15 +9,15 @@
 
 ## Configure wireless interface
 
+Check that the OS detects the wifi adapter, then turn it on
 ```bash
-# Check that OS detects wifi dongle
 dmesg | grep usb
 
 sudo ifdown wlan0
-sudo cp /etc/network/interfaces /etc/network/interfaces.bak
+sudo mv /etc/network/interfaces /etc/network/interfaces.bak
 sudo vim /etc/network/interfaces
 ```
-Enter this instead:
+Replace default configurations with the below:
 ```
 auto lo 
 iface lo inet loopback
@@ -84,34 +84,26 @@ domain-needed
 bogus-priv
 no-resolv
 no-poll
-server=/rasp.local/192.168.10.1
 server=8.8.8.8
 server=8.8.4.4
-local=/rasp.local/
-#address=/doubleclick.net/127.0.0.1
+address=/rasp.net/192.168.10.1
 no-hosts
 addn-hosts=/etc/dnsmasq.d/hosts.conf
 expand-hosts
-domain=rasp.local
-dhcp-range=192.168.10.10,192.168.10.30,72h
-#dhcp-range=tftp,192.168.0.250,192.168.0.254  
-#hcp-host=babraham,192.168.10.21,36h
-dhcp-option=option:router,192.168.10.1
-#dhcp-option=option:ntp-server,192.168.0.5
+domain=embed.local
+dhcp-range=192.168.10.20,192.168.10.50,72h
+#dhcp-option=42,0.0.0.0
 ```
 
 ```bash
 sudo service dnsmasq restart
-sudo vim/etc/dnsmasq.d/hosts.conf
-```
-```
-192.168.10.1 rasp.local
+sudo touch /etc/dnsmasq.d/hosts.conf
 ```
 
 Test dns
 ```bash
-nslookup rasp.local localhost
-nslookup google.com localhost:8002
+nslookup rasp.net localhost
+nslookup google.com localhost
 ```
 
 ## Configure webserver
@@ -132,7 +124,7 @@ Change `worker_processes` to 1 in
 ```
 server {
     listen       80;
-    server_name  rasp.com;
+    server_name  rasp.net;
 
     access_log  /var/log/nginx/raspserver.log;
     error_log   /var/log/nginx/raspserver.error.log;
@@ -144,7 +136,7 @@ server {
 
 server {
     listen 8080;
-    server_name  rasp.com;
+    server_name  rasp.net;
 
     access_log  /var/log/nginx/raspsocketio.log;
     error_log  /var/log/nginx/raspsocketio.error.log;
@@ -169,12 +161,13 @@ socket.io = bidirectional, event based communication
 
 ```bash
 sudo npm install forever -g
-sudo cp /home/pi/raspsocketio/setup/rasp-socketio.sh /etc/init.d/rasp-socketio
-sudo chmod a+x /etc/init.d/rasp-socketio
-sudo update-rc.d rasp-socketio defaults
 
 # test with:
 node socketio_server.js --port 8002 --debug
+
+sudo cp /home/pi/raspsocketio/setup/rasp-socketio.sh /etc/init.d/rasp-socketio
+sudo chmod a+x /etc/init.d/rasp-socketio
+sudo update-rc.d rasp-socketio defaults
 ```
 
 ## Start on boot 
@@ -193,6 +186,10 @@ Enable on boot
 update-rc.d rasp-socketio enable
 update-rc.d nginx enable 
 update-rc.d dnsmasq enable
+ln -s /etc/init.d/hostapd /etc/rc2.d/S02hostapd
 update-rc.d hostapd enable 
 reboot
 ```
+
+Now load the controller software onto the Arduino, plug in the LEDs and everything should work. Controller compilation and flashing covered in the next tutorial, `arduino_setup.md`.
+
