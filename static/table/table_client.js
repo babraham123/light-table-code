@@ -7,6 +7,7 @@
         lenc        = 13,
         pixelSize   = 60,
         socket      = null,
+        waitModal   = null,
         playerColor = '#FFAA33',
         socketUrl   = window.location.protocol + '//rasp.net:8080';
     
@@ -19,12 +20,15 @@
 
         createTable();
         setTableDownListener();
-        openConnection();
-        // TODO: set timer for retry on socket==null
-        if (socket != null) {
+        createWaitModal();
+        waitModal.showPleaseWait();
+
+        // callback executes after server returns ready response
+        openConnection( function() {
             setClearBtn();
             setTableUpListener();
-        }
+            waitModal.hidePleaseWait();
+        });
     }
 
     function createTable() {
@@ -94,13 +98,7 @@
                 console.log('msg sent: ' + JSON.stringify( selectedTime ));
                 activeObj.set('selectedStart', -1);
 
-                var objColor = playerColor;
-                // delay until received by server
-                //activeObj.set('fill', objColor);
-                //activeObj.opacity = 1;
-                //table1.renderAll();
-
-                var msg = pad(activeObj.get('tableIndex'), 3) + ":" + objColor;
+                var msg = pad(activeObj.get('tableIndex'), 3) + ":" + playerColor;
                 socket.emit('local_update', msg);
             }
         });
@@ -117,7 +115,8 @@
     // 'initial_state' => 'remote_updates'
     // 'local_update', 'request_status' => 'remote_update'
     // 'request_color' => 'assign_color'
-    function openConnection() {
+    // 'ready_request' => 'ready_response'
+    function openConnection(callback) {
         // connect to the host server
         socket = io.connect(socketUrl);
 
@@ -153,6 +152,16 @@
             }
         });
 
+        socket.on('ready_response', function(data) {
+            // get unique user color
+            socket.emit('request_color', null);
+            // get initial state of table
+            socket.emit('initial_state', null);
+            if (callback) {
+                callback();
+            }
+        });
+
         socket.on('disconnect', function(msg) {
             console.log('disconnected: ' + JSON.stringify(msg));
         });
@@ -160,14 +169,27 @@
             console.log('errored: ' + JSON.stringify(msg));
         });
 
-        // get initial state of table
-        socket.emit('request_color', null);
-        socket.emit('initial_state', null);
-        console.log('connection created');
+        socket.emit('ready_request', null);
+        console.log('connection configured');
     }
 
     function freezeGame() {
         table1.on('mouse:up', function(e) {});
+    }
+
+    function createWaitModal() {
+        waitModal = waitModal || (function () {
+            var pleaseWaitDiv = $('<div class="modal hide" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false"><div class="modal-header"><h1>Connecting...</h1></div><div class="modal-body"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div></div>');
+            return {
+                showPleaseWait: function() {
+                    pleaseWaitDiv.modal();
+                },
+                hidePleaseWait: function () {
+                    pleaseWaitDiv.modal('hide');
+                },
+
+            };
+        })();
     }
 
     // pad a with enough zeros to fill b digits

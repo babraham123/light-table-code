@@ -18,17 +18,26 @@ var port       = 8002,
     serial     = null,  // doesn't attempt serial connection (no LEDs, only console.log)
     colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC',
                   '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#26374B'],
-    users      = {};    // maxUsers = colors.length
+    users      = {},
+    maxUsers   = -1,
+    curUser    = 0;
 
 function init() {
     processCmdLineParams();
     colorArr = new Array(numLed);
     resetColors(colorArr, background);
 
-    if (debug === false) {
-        openSerialConnection( getSerialPortDevice() );
-    }
-    openSocketIOConnection();
+    openSocketIOConnection( function() {
+        if (debug === true) {
+            io.emit('ready_response', null);
+        } else {
+            getSerialPort(function(device) {
+                openSerialConnection(device, function() {
+                    io.emit('ready_response', null);
+                });
+            });
+        }
+    });
 }
 
 function processCmdLineParams() {
@@ -62,26 +71,34 @@ function processCmdLineParams() {
     }
 }
 
+function getSerialPort(callback) {
+    var portInterval; 
+    // retry every .5s
+    myInterval = setInterval(function() {
+        var device = getSerialPortDevice();
+        if (device) {
+            window.clearInterval(portInterval);
+            callback(device);
+        }
+    }, 500);
+}
+
 function getSerialPortDevice() {
-    var device = '/dev/ttyACM0';
-    var found = false;
+    // '/dev/ttyACM0'
+    var device = null;
     serialPort.list(function (err, ports) {
         ports.forEach(function(p) {
             if (p.pnpId.indexOf('arduino') > -1) {
                 device = p.comName;
-                found = true;
             }
         });
     });
-    if (found === false && debug === false) {
-        throw "Arduino serial port not found";
-    }
 
-    console.log(JSON.stringify(device));
+    console.log('Device: ' + JSON.stringify(device));
     return device;
 }
 
-function openSerialConnection(device) {
+function openSerialConnection(device, callback) {
     serial = new serialPort.SerialPort(device, {
       baudrate: 9600
     });
@@ -104,7 +121,9 @@ function openSerialConnection(device) {
         serial.on('error', function(error) {
             console.log( 'RPi: Serial port error: ' + JSON.stringify(error) );
         });
-
+        if (callback) {
+            callback();
+        }
     });
 }
 
@@ -112,7 +131,8 @@ function openSerialConnection(device) {
 // 'initial_state' => 'remote_updates'
 // 'local_update', 'request_status' => 'remote_update'
 // 'request_color' => 'assign_color'
-function openSocketIOConnection() {
+// 'ready_request' => 'ready_response'
+function openSocketIOConnection(callback) {
     console.log('Starting socket.io connection...');
     io = new Server(port);
     io.on('connection', function(socket) {
@@ -147,35 +167,48 @@ function openSocketIOConnection() {
         });
 
         // request a color by user
-        socket.on('request_color', function(id, data) {
+        socket.on('request_color', function(data) {
             //socket.broadcast.to(id).emit('my message', msg);
-            socket.emit('assign_color', assignColorByUser(id));
+            socket.emit('assign_color', assignColorByUser(socket.id));
         });
 
-        socket.on('disconnect', function(id, data) {
-            console.log("disconnected: " + JSON.stringify(id));
-            releaseUser(id);
+        // request a ready notification
+        socket.on('ready_request', function(id, data) {
+            if (serial != null && serial.isOpen()) {
+                socket.emit('ready_response', null);
+            }
+        });
+
+        socket.on('disconnect', function(data) {
+            console.log("disconnected: " + JSON.stringify(data));
+            releaseUser(socket.id);
         });
         socket.on('error', function(data) {
             console.log("errored: " + JSON.stringify(data));
         });
+
         console.log('connected');
+        if (callback) {
+            callback();
+        }
     });
 }
 
 function assignColorByUser(id) {
-    if (colors.length === 0) {
+    curUser++;
+    if (maxUsers !== -1 && curUser > maxUsers) {
         return null;
     }
-    var color = colors.shift();
+    var color = colors[curUser % colors.length];
     users[id] = color;
+    console.log('Player ' + id.toString() + ' received color ' + color);
     return color;
 }
 
 function releaseUser(id) {
-    var color = users[id];
-    colors.push(color);
+    curUser--;
     delete users[id];
+    console.log('Player ' + id.toString() + ' disconnected');
 }
 
 // incoming = '001:#AA44FF'
