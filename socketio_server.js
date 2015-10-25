@@ -26,6 +26,7 @@ var port       = 8002,
 function init() {
     processCmdLineParams();
     colorArr = new Array(numLed);
+    resetColors(background);
     shuffle(colors);
 
     openSocketIOConnection( function() {
@@ -43,7 +44,6 @@ function init() {
 
 function startGame() {
     inPlay = true;
-    resetColors(background);
     io.emit('ready', null);
 }
 
@@ -199,6 +199,7 @@ function parseMessage(socket, data, mtype, addon) {
             break;
         case 'clear_state':
             resetColors(background);
+            sendAll();
             io.emit('remote_updates', getFullColorSet());
             break;
         case 'local_update':
@@ -255,7 +256,7 @@ function sendAndSaveColor(colormsg) {
         if (debug === false) {
             serial.write('^' + index.toString() + ':' + colorhex + '\n');
             serial.drain();
-            sleep.sleep(0.05);
+            sleep.sleep(0.02);
         }
     }
 }
@@ -269,9 +270,15 @@ function getColor(ind) {
     return ind.toString() + ':' + msg;
 }
 
-function resetColors(backgroundColor) {
+function resetColors(color) {
     for (var i = 0; i < colorArr.length; i++) {
-        var msg = pad(i, 3) + ':' + backgroundColor;
+        colorArr[i] = color;
+    }
+}
+
+function sendAll() {
+    for (var i = 0; i < colorArr.length; i++) {
+        var msg = pad(i, 3) + ':' + colorArr[i];
         sendAndSaveColor(msg);
     }
 }

@@ -31,7 +31,7 @@
         // set the canvas
         table1 = new fabric.Canvas('table1', {
             selection: false,
-            backgroundColor : background
+            backgroundColor : '#000000'
         });
 
         // add the tableIndex param to all fabric objects
@@ -48,7 +48,7 @@
                 var rect = new fabric.Rect({
                     left: x*w + pixelSize,
                     top: y*h + pixelSize,
-                    fill: '#CCCCCC',
+                    fill: background,
                     width: w - offset,
                     height: h - offset,
                     hasControls: false,
