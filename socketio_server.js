@@ -162,7 +162,7 @@ function openSocketIOConnection(callback) {
 
         // request a color by user
         socket.on('color_request', function(data) {
-            parseMessage(socket, data, 'color_request', '');
+            parseMessage(socket, data, 'color_request', ', player ' + socket.id.toString());
         });
 
         // request a ready notification
