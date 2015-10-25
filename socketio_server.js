@@ -26,13 +26,13 @@ function init() {
     processCmdLineParams();
     colorArr = new Array(numLed);
     shuffle(colors);
-    resetColors(background);
 
     openSocketIOConnection( function() {
         if (debug === true) {
             io.emit('ready_response', null);
         } else {
             getSerialPort( function(device) {
+                resetColors(background);
                 openSerialConnection(device, function() {
                     io.emit('ready_response', null);
                 });

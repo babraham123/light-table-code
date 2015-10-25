@@ -9,6 +9,7 @@
         socket      = null,
         waitModal   = null,
         playerColor = '#FFAA33',
+        background  = '#333333',
         socketUrl   = window.location.protocol + '//rasp.net:8080';
     
     function init() {
@@ -35,7 +36,7 @@
         // set the canvas
         table1 = new fabric.Canvas('table1', {
             selection: false,
-            backgroundColor : '#222222'
+            backgroundColor : background
         });
 
         // add the tableIndex param to all fabric objects
