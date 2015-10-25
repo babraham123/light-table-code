@@ -20,7 +20,8 @@ var port       = 8002,
                   '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#99CCFF'],
     users      = {},
     maxUsers   = -1,
-    curUser    = 0;
+    numUsers   = 0,
+    inPlay     = false;
 
 function init() {
     processCmdLineParams();
@@ -29,16 +30,21 @@ function init() {
 
     openSocketIOConnection( function() {
         if (debug === true) {
-            io.emit('ready_response', null);
+            startGame();
         } else {
             getSerialPort( function(device) {
-                resetColors(background);
                 openSerialConnection(device, function() {
-                    io.emit('ready_response', null);
+                    startGame();
                 });
             });
         }
     });
+}
+
+function startGame() {
+    inPlay = true;
+    resetColors(background);
+    io.emit('ready', null);
 }
 
 function processCmdLineParams() {
@@ -133,52 +139,35 @@ function openSerialConnection(device, callback) {
 // Communication API
 // 'initial_state' => 'remote_updates'
 // 'local_update', 'request_status' => 'remote_update'
-// 'request_color' => 'assign_color'
-// 'ready_request' => 'ready_response'
+// 'color_request' => 'assign_color'
+// 'status_request' => 'ready', 'not_ready'
 function openSocketIOConnection(callback) {
     console.log('Starting socket.io connection...');
     io = new Server(port);
     io.on('connection', function(socket) {
         // request for initial set of data
         socket.on('initial_state', function(data) {
-            console.log('initial_state');
-            socket.emit('remote_updates', getFullColorSet());
+            parseMessage(socket, data, 'initial_state', '');
         });
 
         // clear all of the leds
         socket.on('clear_state', function(data) {
-            console.log('clear_state');
-            resetColors(background);
-            io.emit('remote_updates', getFullColorSet());
+            parseMessage(socket, data, 'clear_state', '');
         });
 
         // update the color of a particular led
         socket.on('local_update', function(colormsg) {
-            console.log('local_update: ' + colormsg);
-            // set color, forward to other clients
-            io.emit('remote_update', colormsg);
-            sendAndSaveColor(colormsg);
-        });
-
-        // request for status of a particular led
-        socket.on('request_status', function(data) {
-            console.log('request_status: ' + data);
-            socket.emit('remote_update', getColor(data));
+            parseMessage(socket, colormsg, 'local_update', colormsg);
         });
 
         // request a color by user
-        socket.on('request_color', function(data) {
-            console.log('request_color');
-            //socket.broadcast.to(id).emit('my message', msg);
-            socket.emit('assign_color', assignColorByUser(socket.id));
+        socket.on('color_request', function(data) {
+            parseMessage(socket, data, 'color_request', '');
         });
 
         // request a ready notification
-        socket.on('ready_request', function(id, data) {
-            console.log('ready_request');
-            if (serial != null && serial.isOpen()) {
-                socket.emit('ready_response', null);
-            }
+        socket.on('status_request', function(data) {
+            parseMessage(socket, data, 'status_request', '');
         });
 
         socket.on('disconnect', function(data) {
@@ -196,19 +185,51 @@ function openSocketIOConnection(callback) {
     });
 }
 
+function parseMessage(socket, data, mtype, addon) {
+    var addon = addon || '';
+    console.log(mtype + ': ' + addon);
+    if (inPlay === false) {
+        socket.emit('not_ready', null);
+    }
+
+    switch(mtype) {
+        case 'initial_state':
+            socket.emit('remote_updates', getFullColorSet());
+            break;
+        case 'clear_state':
+            resetColors(background);
+            io.emit('remote_updates', getFullColorSet());
+            break;
+        case 'local_update':
+            io.emit('remote_update', colormsg);
+            sendAndSaveColor(colormsg);
+            break;
+        case 'color_request':
+            var color = assignColorByUser(socket.id);
+            if (color) {
+                socket.emit('assign_color', color);
+            } else {
+                socket.emit('not_ready', null);
+            }
+            break;
+        case 'status_request':
+            break;
+    }
+}
+
 function assignColorByUser(id) {
-    curUser++;
-    if (maxUsers > -1 && curUser > maxUsers) {
+    numUsers++;
+    if (maxUsers > -1 && numUsers > maxUsers) {
         return null;
     }
-    var color = colors[curUser % colors.length];
+    var color = colors[numUsers % colors.length];
     users[id] = color;
     console.log('Player ' + id.toString() + ' received color ' + color);
     return color;
 }
 
 function releaseUser(id) {
-    curUser--;
+    numUsers--;
     delete users[id];
     console.log('Player ' + id.toString() + ' disconnected');
 }

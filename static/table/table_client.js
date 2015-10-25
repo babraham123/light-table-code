@@ -1,35 +1,30 @@
 (function(){
 
-    var colorArr    = [],
-        table1      = null,
-        clearbtn    = null,
-        lenr        = 8,
-        lenc        = 13,
-        pixelSize   = 60,
-        socket      = null,
-        waitModal   = null,
-        playerColor = '#FFAA33',
-        background  = '#333333',
-        socketUrl   = window.location.protocol + '//rasp.net:8080';
+    var colorArr      = [],
+        table1        = null,
+        clearbtn      = null,
+        lenr          = 8,
+        lenc          = 13,
+        pixelSize     = 60,
+        socket        = null,
+        pleaseWaitDiv = null,
+        playerColor   = '#FFAA33',
+        background    = '#333333',
+        socketUrl     = window.location.protocol + '//rasp.net:8080';
     
     function init() {
         colorArr = new Array(lenr * lenc);
-
         // set debugging
-        //localStorage.debug='*';
-        localStorage.debug='';
+        localStorage.debug='';  // '*'
 
         createTable();
         setTableDownListener();
-        createWaitModal();
-        waitModal.showPleaseWait();
+        pleaseWaitDiv = $('#pleaseWaitDialog');
+        pleaseWaitDiv.modal('show');
 
-        // callback executes after server returns ready response
-        openConnection( function() {
-            setClearBtn();
-            setTableUpListener();
-            waitModal.hidePleaseWait();
-        });
+        openConnection();
+        setClearBtn();
+        setTableUpListener();
     }
 
     function createTable() {
@@ -100,7 +95,9 @@
                 activeObj.set('selectedStart', -1);
                 // '001:#AA44FF'
                 var msg = pad(activeObj.get('tableIndex'), 3) + ":" + playerColor;
-                socket.emit('local_update', msg);
+                if (socket) {
+                    socket.emit('local_update', msg);
+                }
             }
         });
     }
@@ -108,7 +105,9 @@
     function setClearBtn() {
         clearbtn = $('#clearbtn');
         clearbtn.click(function() {
-            socket.emit('clear_state', 'clearing colors');
+            if (socket) {
+                socket.emit('clear_state', null);
+            }
         });
     }
 
@@ -116,8 +115,8 @@
     // 'initial_state' => 'remote_updates'
     // 'local_update', 'request_status' => 'remote_update'
     // 'request_color' => 'assign_color'
-    // 'ready_request' => 'ready_response'
-    function openConnection(callback) {
+    // 'status_request' => 'ready', 'not_ready'
+    function openConnection() {
         // connect to the host server
         socket = io.connect(socketUrl);
 
@@ -132,7 +131,6 @@
         });
 
         socket.on('remote_updates', function(msg) {
-            console.log('remote_updates: ' + msg);
             // set the initial state of the table
             var initialColors = msg.split(',');
             $.each(initialColors, function( index, elem ) {
@@ -144,23 +142,17 @@
         });
 
         socket.on('assign_color', function(color) {
-            if (color == null || color == '') {
-                console.log('Too many players');
-                alert('Too many players in the game. Please wait and refresh.');
-                freezeGame();
-            } else {
-                playerColor = color;
-            }
+            playerColor = color;
         });
 
-        socket.on('ready_response', function(data) {
-            // get unique user color
-            socket.emit('request_color', null);
-            // get initial state of table
+        socket.on('ready', function(data) {
+            socket.emit('color_request', null);
             socket.emit('initial_state', null);
-            if (callback) {
-                callback();
-            }
+            pleaseWaitDiv.modal('hide');
+        });
+
+        socket.on('not_ready', function(data) {
+            pleaseWaitDiv.modal('show');
         });
 
         socket.on('disconnect', function(msg) {
@@ -170,27 +162,12 @@
             console.log('errored: ' + JSON.stringify(msg));
         });
 
-        socket.emit('ready_request', null);
+        socket.emit('status_request', null);
         console.log('connection configured');
     }
 
     function freezeGame() {
         table1.on('mouse:up', function(e) {});
-    }
-
-    function createWaitModal() {
-        waitModal = waitModal || (function () {
-            var pleaseWaitDiv = $('<div class="modal hide" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false"><div class="modal-header"><h1>Connecting...</h1></div><div class="modal-body"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div></div>');
-            return {
-                showPleaseWait: function() {
-                    pleaseWaitDiv.modal();
-                },
-                hidePleaseWait: function () {
-                    pleaseWaitDiv.modal('hide');
-                },
-
-            };
-        })();
     }
 
     // pad a with enough zeros to fill b digits
