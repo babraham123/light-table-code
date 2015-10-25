@@ -13,11 +13,11 @@ var port       = 8002,
     lenc       = 13,
     numLed     = lenr * lenc,
     io         = null,
-    background = '#22CCCC',
+    background = '#003333',
     colorArr   = null,
     serial     = null,
-    colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC',
-                  '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#26374B'],
+    colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC', '#FF99FF',
+                  '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#99CCFF'],
     users      = {},
     maxUsers   = -1,
     curUser    = 0;
@@ -168,12 +168,14 @@ function openSocketIOConnection(callback) {
 
         // request a color by user
         socket.on('request_color', function(data) {
+            console.log('request_color');
             //socket.broadcast.to(id).emit('my message', msg);
             socket.emit('assign_color', assignColorByUser(socket.id));
         });
 
         // request a ready notification
         socket.on('ready_request', function(id, data) {
+            console.log('ready_request');
             if (serial != null && serial.isOpen()) {
                 socket.emit('ready_response', null);
             }
@@ -199,7 +201,7 @@ function assignColorByUser(id) {
     if (maxUsers !== -1 && curUser > maxUsers) {
         return null;
     }
-    var color = colors[curUser % colors.length];
+    var color = colors[curUser % colors.length].toString();
     users[id] = color;
     console.log('Player ' + id.toString() + ' received color ' + color);
     return color;
