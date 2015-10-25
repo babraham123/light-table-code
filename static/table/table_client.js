@@ -117,8 +117,8 @@
 
     // Communication API
     // 'initial_state' => 'remote_updates'
-    // 'local_update', 'request_status' => 'remote_update'
-    // 'request_color' => 'assign_color'
+    // 'local_update' => 'remote_update'
+    // 'color_request' => 'assign_color'
     // 'status_request' => 'ready', 'not_ready'
     function openConnection() {
         // connect to the host server

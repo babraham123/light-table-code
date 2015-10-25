@@ -138,11 +138,11 @@ function openSerialConnection(device, callback) {
 
 // Communication API
 // 'initial_state' => 'remote_updates'
-// 'local_update', 'request_status' => 'remote_update'
+// 'local_update' => 'remote_update'
 // 'color_request' => 'assign_color'
 // 'status_request' => 'ready', 'not_ready'
 function openSocketIOConnection(callback) {
-    console.log('Starting socket.io connection...');
+    console.log('Starting socket.io server...');
     io = new Server(port);
     io.on('connection', function(socket) {
         // request for initial set of data
@@ -174,10 +174,10 @@ function openSocketIOConnection(callback) {
             console.log("errored: " + JSON.stringify(data));
         });
         console.log('connected');
-        if (callback) {
-            callback();
-        }
     });
+    if (callback) {
+        callback();
+    }
 }
 
 function parseMessage(socket, data, mtype, addon) {
