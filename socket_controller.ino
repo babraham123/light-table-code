@@ -4,12 +4,13 @@ Author: Bereket Abraham
 ***/
 #include "FastSPI_LED2.h"
 
-// col 13, row 8
-#define NUM_LEDS 105
+// col 13, row 8, 105 total
+#define NUM_LEDS 40
 #define NUM_COL 13
 #define NUM_ROW 8
 #define DATA_PIN 6
 #define STATUS_PIN 3
+#define STATUS_PIN_B 13
 #define BUFFER_SIZE 15
 #define START_CHAR '^'
 #define END_CHAR '\n'
@@ -18,6 +19,17 @@ Author: Bereket Abraham
 CRGB leds[NUM_LEDS];
 char serialBuffer[BUFFER_SIZE];
 int currIndex = 0;
+uint8_t toggle = 0;
+
+void toggleStatusLight() {
+    if(toggle == LOW) {
+        digitalWrite(STATUS_PIN_B, HIGH);
+        toggle = HIGH;
+    } else {
+        digitalWrite(STATUS_PIN_B, LOW);
+        toggle = LOW;
+    }
+}
 
 unsigned int convertCharHex(char a, char b) {
     // converts two chars in hex format into one unsigned int
@@ -41,6 +53,7 @@ void setColor(unsigned int index, unsigned int r,
     
     leds[index].setRGB(r, g, b);
     FastLED.show();
+    toggleStatusLight();
 
     if(DEBUG) {
         Serial.print(String(index) + " : ");
@@ -135,6 +148,9 @@ void setup() {
 
     // Set the status light
     pinMode(STATUS_PIN, OUTPUT);
+    pinMode(STATUS_PIN_B, OUTPUT);
+    digitalWrite(STATUS_PIN, LOW);
+    digitalWrite(STATUS_PIN_B, LOW);
 }
 
 void loop() {
