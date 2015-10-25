@@ -5,6 +5,7 @@
         clearbtn      = null,
         lenr          = 8,
         lenc          = 13,
+        numLed        = lenr * lenc,
         pixelSize     = 60,
         socket        = null,
         pleaseWaitDiv = null,
@@ -13,7 +14,7 @@
         socketUrl     = window.location.protocol + '//rasp.net:8080';
     
     function init() {
-        colorArr = new Array(lenr * lenc);
+        colorArr = new Array(numLed);
         // set debugging
         localStorage.debug='';  // '*'
 
@@ -44,6 +45,9 @@
                 var h = pixelSize;
                 var offset = 4;
                 var index = y*lenc + x;
+                if (index >= numLed) {
+                    continue;
+                }
 
                 var rect = new fabric.Rect({
                     left: x*w + pixelSize,
@@ -120,13 +124,9 @@
         // connect to the host server
         socket = io.connect(socketUrl);
 
-        socket.on('remote_update', function(colormsg) {
-            console.log('remote_update: ' + colormsg);
-            // update the state of the table based on remote change
-            var ind = parseInt( colormsg.substring(0, 3) );
-            var color = colormsg.substring(4, colormsg.length);
-            colorArr[ind].set('fill', color);
-            colorArr[ind].set('opacity', 1);
+        socket.on('remote_update', function(data) {
+            console.log('remote_update: ' + data);
+            setColor(data);
             table1.renderAll();            
         });
 
@@ -134,9 +134,7 @@
             // set the initial state of the table
             var initialColors = msg.split(',');
             $.each(initialColors, function( index, elem ) {
-                var ind = parseInt( elem.substring(0, 3) );
-                var color = elem.substring(4, elem.length);
-                colorArr[ind].set('fill', color);
+                setColor(elem);
             });
             table1.renderAll();
         });
@@ -164,6 +162,15 @@
 
         socket.emit('status_request', null);
         console.log('connection configured');
+    }
+
+    function setColor(colormsg) {
+        var ind = parseInt( colormsg.substring(0, 3) );
+        var color = colormsg.substring(4, colormsg.length);
+        if (ind < numLed) {
+            colorArr[ind].set('fill', color);
+            colorArr[ind].set('opacity', 1);
+        }
     }
 
     function freezeGame() {

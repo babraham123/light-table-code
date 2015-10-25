@@ -149,22 +149,18 @@ function openSocketIOConnection(callback) {
         socket.on('initial_state', function(data) {
             parseMessage(socket, data, 'initial_state', '');
         });
-
         // clear all of the leds
         socket.on('clear_state', function(data) {
             parseMessage(socket, data, 'clear_state', '');
         });
-
         // update the color of a particular led
         socket.on('local_update', function(data) {
             parseMessage(socket, data, 'local_update', data);
         });
-
         // request a color by user
         socket.on('color_request', function(data) {
             parseMessage(socket, data, 'color_request', ', player ' + socket.id.toString());
         });
-
         // request a ready notification
         socket.on('status_request', function(data) {
             parseMessage(socket, data, 'status_request', '');
@@ -177,7 +173,6 @@ function openSocketIOConnection(callback) {
         socket.on('error', function(data) {
             console.log("errored: " + JSON.stringify(data));
         });
-
         console.log('connected');
         if (callback) {
             callback();
@@ -224,6 +219,9 @@ function parseMessage(socket, data, mtype, addon) {
 }
 
 function assignColorByUser(id) {
+    if (users.hasOwnProperty(id) && users[id]) {
+        return users[id];
+    }
     numUsers++;
     if (maxUsers > -1 && numUsers > maxUsers) {
         return null;
