@@ -8,14 +8,14 @@ var Server     = require('socket.io'),
     sleep      = require('sleep');
 
 var port       = 8002,
-    debug      = false,
+    debug      = false, // doesn't attempt serial connection (no LEDs, only console.log)
     lenr       = 8,
     lenc       = 13,
     numLed     = lenr * lenc,
     io         = null,
     background = '#22CCCC',
     colorArr   = null,
-    serial     = null,  // doesn't attempt serial connection (no LEDs, only console.log)
+    serial     = null,
     colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC',
                   '#3FD373', '#E2332A', '#8A38AC', '#E7ECEE', '#26374B'],
     users      = {},
@@ -31,7 +31,7 @@ function init() {
         if (debug === true) {
             io.emit('ready_response', null);
         } else {
-            getSerialPort(function(device) {
+            getSerialPort( function(device) {
                 openSerialConnection(device, function() {
                     io.emit('ready_response', null);
                 });
@@ -74,7 +74,7 @@ function processCmdLineParams() {
 function getSerialPort(callback) {
     var portInterval; 
     // retry every .5s
-    myInterval = setInterval(function() {
+    portInterval = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
             window.clearInterval(portInterval);
