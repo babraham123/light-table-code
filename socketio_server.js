@@ -78,6 +78,7 @@ function getSerialPort(callback) {
     portInterval = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
+            console.log('Device: ' + JSON.stringify(device));
             window.clearInterval(portInterval);
             callback(device);
         }
@@ -88,14 +89,15 @@ function getSerialPortDevice() {
     // '/dev/ttyACM0'
     var device = null;
     serialPort.list(function (err, ports) {
-        ports.forEach(function(p) {
-            if (p.pnpId.indexOf('arduino') > -1) {
-                device = p.comName;
-            }
-        });
+        if (ports) {
+            ports.forEach(function(p) {
+                if (p.pnpId.indexOf('arduino') > -1) {
+                    device = p.comName;
+                }
+            });
+        }
     });
 
-    console.log('Device: ' + JSON.stringify(device));
     return device;
 }
 
