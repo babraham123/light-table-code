@@ -26,7 +26,7 @@ function init() {
     processCmdLineParams();
     colorArr = new Array(numLed);
     shuffle(colors);
-    resetColors(colorArr, background);
+    resetColors(background);
 
     openSocketIOConnection( function() {
         if (debug === true) {
@@ -140,25 +140,22 @@ function openSocketIOConnection(callback) {
         // request for initial set of data
         socket.on('initial_state', function(data) {
             console.log('initial_state');
-            socket.emit('remote_updates', fullColorSet(colorArr));
+            socket.emit('remote_updates', getFullColorSet());
         });
 
         // clear all of the leds
         socket.on('clear_state', function(data) {
             console.log('clear_state');
-            resetColors(colorArr, background);
-            io.emit('remote_updates', fullColorSet(colorArr));
+            resetColors(background);
+            io.emit('remote_updates', getFullColorSet());
         });
 
         // update the color of a particular led
         socket.on('local_update', function(colormsg) {
             console.log('local_update: ' + colormsg);
-            // save state
-            var ind = parseInt( colormsg.substring(0, 3) );
-            colorArr[ind] = colormsg.substring(4, colormsg.length);
             // set color, forward to other clients
             io.emit('remote_update', colormsg);
-            sendColor(colormsg);
+            sendAndSaveColor(colormsg);
         });
 
         // request for status of a particular led
@@ -218,17 +215,17 @@ function releaseUser(id) {
 // outgoing = '^001:AA44FF\n'
 // ignore message if out-of-bounds
 // don't send over serial if debug mode
-function sendColor(colormsg) {
+function sendAndSaveColor(colormsg) {
     if (debug === true) {
         console.log(colormsg);
     }
-    var index = colormsg.substring(0, 3);
+    var index = parseInt( colormsg.substring(0, 3) );
     var colorhex = colormsg.substring(5, colormsg.length);
 
-    if (parseInt(index) < numLed) {
-        colorArr[parseInt( index )] = colorhex;
+    if (index < numLed) {
+        colorArr[index] = '#' + colorhex;
         if (debug === false) {
-            serial.write('^' + index + ':' + colorhex + '\n');
+            serial.write('^' + index.toString() + ':' + colorhex + '\n');
             serial.drain();
             sleep.sleep(0.05);
         }
@@ -244,10 +241,10 @@ function getColor(ind) {
     return ind.toString() + ':' + msg;
 }
 
-function resetColors(arr, backgroundColor) {
-    for (var i = 0; i < arr.length; i++) {
-        arr[i] = backgroundColor;
-        sendColor(arr[i]);
+function resetColors(backgroundColor) {
+    for (var i = 0; i < colorArr.length; i++) {
+        var msg = pad(i, 3) + ':' + backgroundColor;
+        sendAndSaveColor(msg);
     }
 }
 
@@ -256,10 +253,10 @@ function pad(a,b) {
     return(1e15+a+"").slice(-b)
 }
 
-function fullColorSet(arr) {
+function getFullColorSet() {
     var msg = '';
-    for (var i = 0; i < arr.length; i++) {
-        msg += pad(i, 3) + ':' + arr[i] + ',';
+    for (var i = 0; i < colorArr.length; i++) {
+        msg += pad(i, 3) + ':' + colorArr[i] + ',';
     }
     msg = msg.substring(0, msg.length-1);
     return msg;
