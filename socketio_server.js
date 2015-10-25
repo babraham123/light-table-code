@@ -156,8 +156,8 @@ function openSocketIOConnection(callback) {
         });
 
         // update the color of a particular led
-        socket.on('local_update', function(colormsg) {
-            parseMessage(socket, colormsg, 'local_update', colormsg);
+        socket.on('local_update', function(data) {
+            parseMessage(socket, data, 'local_update', data);
         });
 
         // request a color by user
@@ -190,6 +190,7 @@ function parseMessage(socket, data, mtype, addon) {
     console.log(mtype + ': ' + addon);
     if (inPlay === false) {
         socket.emit('not_ready', null);
+        return;
     }
 
     switch(mtype) {
@@ -201,8 +202,8 @@ function parseMessage(socket, data, mtype, addon) {
             io.emit('remote_updates', getFullColorSet());
             break;
         case 'local_update':
-            io.emit('remote_update', colormsg);
-            sendAndSaveColor(colormsg);
+            io.emit('remote_update', data);
+            sendAndSaveColor(data);
             break;
         case 'color_request':
             var color = assignColorByUser(socket.id);
@@ -213,6 +214,10 @@ function parseMessage(socket, data, mtype, addon) {
             }
             break;
         case 'status_request':
+            socket.emit('ready', null);
+            break;
+        default:
+            throw 'Message type not found';
             break;
     }
 }
