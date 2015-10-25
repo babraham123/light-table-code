@@ -13,7 +13,7 @@ var port       = 8002,
     lenc       = 13,
     numLed     = lenr * lenc,
     io         = null,
-    background = '#003333',
+    background = '#333333',
     colorArr   = null,
     serial     = null,
     colors     = ['#03B589', '#EBBA00', '#E06B0A', '#1F81DC', '#FF99FF',
@@ -25,6 +25,7 @@ var port       = 8002,
 function init() {
     processCmdLineParams();
     colorArr = new Array(numLed);
+    shuffle(colors);
     resetColors(colorArr, background);
 
     openSocketIOConnection( function() {
@@ -198,10 +199,10 @@ function openSocketIOConnection(callback) {
 
 function assignColorByUser(id) {
     curUser++;
-    if (maxUsers !== -1 && curUser > maxUsers) {
+    if (maxUsers > -1 && curUser > maxUsers) {
         return null;
     }
-    var color = colors[curUser % colors.length].toString();
+    var color = colors[curUser % colors.length];
     users[id] = color;
     console.log('Player ' + id.toString() + ' received color ' + color);
     return color;
@@ -229,7 +230,7 @@ function sendColor(colormsg) {
         if (debug === false) {
             serial.write('^' + index + ':' + colorhex + '\n');
             serial.drain();
-            sleep.sleep(0.05)
+            sleep.sleep(0.05);
         }
     }
 }
@@ -264,6 +265,16 @@ function fullColorSet(arr) {
     return msg;
 }
 
+// Fisher-Yates shuffle
+function shuffle(arr) {
+  var i = 0, j = 0, temp = null;
+  for (i = arr.length - 1; i > 0; i -= 1) {
+    j = Math.floor(Math.random() * (i + 1));
+    temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+}
 
 init();
 

@@ -97,7 +97,7 @@
                 // use time to determine the color of the rect
                 console.log('msg sent: ' + JSON.stringify( selectedTime ));
                 activeObj.set('selectedStart', -1);
-
+                // '001:#AA44FF'
                 var msg = pad(activeObj.get('tableIndex'), 3) + ":" + playerColor;
                 socket.emit('local_update', msg);
             }
