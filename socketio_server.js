@@ -80,15 +80,15 @@ function processCmdLineParams() {
 
 function getSerialPort(callback) {
     var portInterval; 
-    // retry every .5s
+    // retry every 1s
     portInterval = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
             console.log('Device: ' + JSON.stringify(device));
-            window.clearInterval(portInterval);
+            clearInterval(portInterval);
             callback(device);
         }
-    }, 500);
+    }, 1000);
 }
 
 function getSerialPortDevice() {
