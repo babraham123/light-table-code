@@ -46,6 +46,7 @@ function init() {
 function startGame() {
     inPlay = true;
     io.emit('ready', null);
+    console.log('Game ready');
 }
 
 function processCmdLineParams() {
@@ -80,7 +81,7 @@ function processCmdLineParams() {
 }
 
 function getSerialPort(callback) { 
-    // retry every 1s
+    // retry every 2s
     portTimer = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
@@ -90,7 +91,7 @@ function getSerialPort(callback) {
             }
             callback(device);
         }
-    }, 1000);
+    }, 2000);
 }
 
 function getSerialPortDevice() {
@@ -123,6 +124,7 @@ function openSerialConnection(device, callback) {
 
         // react to arduino sensed events
         serial.on('data', function(data) {
+            io.emit('info', data.toString('ascii'));
             console.log( 'Arduino: ' + data.toString('ascii') );
         });
 
@@ -132,6 +134,7 @@ function openSerialConnection(device, callback) {
         serial.on('error', function(error) {
             console.log( 'RPi: Serial port error: ' + JSON.stringify(error) );
         });
+        console.log('serial link established');
         if (callback) {
             callback();
         }
@@ -143,8 +146,8 @@ function openSerialConnection(device, callback) {
 // 'local_update' => 'remote_update'
 // 'color_request' => 'assign_color'
 // 'status_request' => 'ready', 'not_ready'
+// 'info'
 function openSocketIOConnection(callback) {
-    console.log('Starting socket.io server...');
     io = new Server(port);
     io.on('connection', function(socket) {
         // request for initial set of data
@@ -175,8 +178,9 @@ function openSocketIOConnection(callback) {
         socket.on('error', function(data) {
             console.log("errored: " + JSON.stringify(data));
         });
-        console.log('connected');
+        console.log('connected: ' + socket.id.toString());
     });
+    console.log('socket.io started');
     if (callback) {
         callback();
     }
