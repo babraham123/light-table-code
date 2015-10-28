@@ -81,7 +81,7 @@ function processCmdLineParams() {
 }
 
 function getSerialPort(callback) { 
-    // retry every 1s
+    // retry every 2s
     portTimer = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
@@ -91,7 +91,7 @@ function getSerialPort(callback) {
             }
             callback(device);
         }
-    }, 1000);
+    }, 2000);
 }
 
 function getSerialPortDevice() {
