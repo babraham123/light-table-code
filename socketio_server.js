@@ -21,7 +21,8 @@ var port       = 8002,
     users      = {},
     maxUsers   = -1,
     numUsers   = 0,
-    inPlay     = false;
+    inPlay     = false,
+    portTimer  = null;
 
 function init() {
     processCmdLineParams();
@@ -78,14 +79,15 @@ function processCmdLineParams() {
     }
 }
 
-function getSerialPort(callback) {
-    var portInterval; 
+function getSerialPort(callback) { 
     // retry every 1s
-    portInterval = setInterval(function() {
+    portTimer = setInterval(function() {
         var device = getSerialPortDevice();
         if (device) {
             console.log('Device: ' + JSON.stringify(device));
-            clearInterval(portInterval);
+            if (portTimer) {
+                clearInterval(portTimer);
+            }
             callback(device);
         }
     }, 1000);
