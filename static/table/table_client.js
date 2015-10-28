@@ -120,6 +120,7 @@
     // 'local_update' => 'remote_update'
     // 'color_request' => 'assign_color'
     // 'status_request' => 'ready', 'not_ready'
+    // 'info'
     function openConnection() {
         // connect to the host server
         socket = io.connect(socketUrl);
@@ -151,6 +152,10 @@
 
         socket.on('not_ready', function(data) {
             pleaseWaitDiv.modal('show');
+        });
+
+        socket.on('info', function(data) {
+            console.log(data.toString());
         });
 
         socket.on('disconnect', function(msg) {
