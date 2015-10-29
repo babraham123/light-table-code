@@ -8,13 +8,18 @@ var sPort = require("serialport");
 // locate the arduino serial port
 var port = '?';
 sPort.list(function (err, ports) {
-    console.log('len ports: ' + ports.length.toString() + ' | ' + err.toString());
-    ports.forEach(function(p) {
-        console.log('' + p.pnpId + ' | ' + p.comName);
-        if (p.pnpId.indexOf('arduino') > -1) {
-            port = p.comName;
-        }
-    });
+    if (ports) {
+        console.log('len ports: ' + ports.length.toString() + ' | ' + err.toString());
+        ports.forEach(function(p) {
+            console.log('' + p.pnpId + ' | ' + p.comName);
+            if (p.pnpId.indexOf('arduino') > -1) {
+                port = p.comName;
+            }
+        });
+    } else {
+        console.log('no ports');
+        return;
+    }
 });
 console.log('Port: ' + port);
 // open serial connection
